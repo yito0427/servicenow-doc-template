@@ -1,0 +1,2 @@
+# servicenow-doc-template
+ServiceNowをデリバリするために必要なドキュメント雛形を生成AIで作る実験リポジトリ
