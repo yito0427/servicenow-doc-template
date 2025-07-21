@@ -1,0 +1,319 @@
+# {{ project_name }} - CMDB設計書
+
+**バージョン:** {{ version }}  
+**作成者:** {{ author.name }}  
+**作成日:** {{ created_date | date_format }}  
+**ドキュメントタイプ:** CMDB設計書
+
+---
+
+## 1. 概要
+
+### 1.1 目的
+{{ cmdb_scope.description }}
+
+### 1.2 目標
+{% for objective in cmdb_scope.objectives %}
+- {{ objective }}
+{% endfor %}
+
+### 1.3 スコープ
+
+#### 対象範囲
+{% for item in cmdb_scope.in_scope %}
+- {{ item }}
+{% endfor %}
+
+#### 対象外
+{% for item in cmdb_scope.out_of_scope %}
+- {{ item }}
+{% endfor %}
+
+---
+
+## 2. CMDB設計方針
+
+### 2.1 設計原則
+- **正確性**: すべてのCIデータは正確で最新の状態を保つ
+- **完全性**: ビジネスサービス提供に必要なすべてのCIを網羅
+- **一貫性**: 命名規則とデータ形式の統一
+- **追跡可能性**: すべての変更履歴を保持
+- **自動化**: 可能な限りDiscoveryによる自動収集を実施
+
+### 2.2 データガバナンス
+- CIオーナーシップの明確化
+- データ品質基準の設定
+- 定期的な棚卸しプロセスの確立
+- 変更管理プロセスとの連携
+
+---
+
+## 3. CIクラス設計
+
+### 3.1 CIクラス階層
+```
+cmdb_ci (すべてのCIの基底クラス)
+├── cmdb_ci_computer
+│   ├── cmdb_ci_server
+│   ├── cmdb_ci_vm_instance
+│   └── cmdb_ci_cloud_vm_instance
+├── cmdb_ci_appl
+│   ├── cmdb_ci_business_app
+│   └── cmdb_ci_service
+├── cmdb_ci_db_instance
+│   ├── cmdb_ci_db_oracle_instance
+│   └── cmdb_ci_db_mssql_instance
+└── cmdb_ci_network_gear
+    ├── cmdb_ci_router
+    └── cmdb_ci_switch
+```
+
+### 3.2 主要CIクラス定義
+
+{% for ci_class in ci_classes %}
+#### {{ ci_class.label }} ({{ ci_class.name }})
+- **親クラス**: {{ ci_class.parent }}
+- **説明**: {{ ci_class.description | default('標準的な' + ci_class.label + 'を表すCIクラス') }}
+
+**属性定義:**
+| 属性名 | データ型 | 必須 | 説明 |
+|--------|----------|------|------|
+{% for attr in ci_class.attributes %}
+| {{ attr.name }} | {{ attr.type }} | {% if attr.mandatory %}はい{% else %}いいえ{% endif %} | {{ attr.description | default('-') }} |
+{% endfor %}
+
+{% endfor %}
+
+---
+
+## 4. CI識別・正規化ルール
+
+### 4.1 識別ルール
+
+{% if identification_rules %}
+{% for rule in identification_rules %}
+#### {{ rule.ci_class }} - 識別ルール
+- **優先度1**: {{ rule.primary_rule | default('Serial Number') }}
+- **優先度2**: {{ rule.secondary_rule | default('Name + IP Address') }}
+- **優先度3**: {{ rule.tertiary_rule | default('MAC Address') }}
+{% endfor %}
+{% else %}
+#### サーバー識別ルール
+- **優先度1**: Serial Number
+- **優先度2**: Host Name + Domain
+- **優先度3**: UUID
+
+#### アプリケーション識別ルール
+- **優先度1**: Application Name + Version
+- **優先度2**: Install Path + Server
+- **優先度3**: Process Name + Port
+{% endif %}
+
+### 4.2 正規化ルール
+
+#### ホスト名正規化
+- すべて小文字に変換
+- FQDN形式で統一
+- 特殊文字は除去
+
+#### IPアドレス正規化
+- IPv4: xxx.xxx.xxx.xxx形式
+- IPv6: 標準表記に統一
+- 重複IPの検出と警告
+
+---
+
+## 5. 関係性設計
+
+### 5.1 関係性タイプ
+
+| 関係性タイプ | 説明 | 例 |
+|--------------|------|-----|
+| Runs on | アプリケーションが稼働する基盤 | App → Server |
+| Connects to | ネットワーク接続 | Server → Network Device |
+| Uses | リソースの使用 | App → Database |
+| Virtualized by | 仮想化関係 | VM → Hypervisor |
+| Consists of | 構成要素 | Service → Application |
+
+### 5.2 サービスマッピング
+
+```
+ビジネスサービス
+└── 技術サービス
+    ├── アプリケーション
+    │   ├── Webサーバー
+    │   ├── APサーバー
+    │   └── DBサーバー
+    └── インフラストラクチャ
+        ├── ネットワーク機器
+        ├── ストレージ
+        └── 仮想化基盤
+```
+
+---
+
+## 6. Discovery戦略
+
+### 6.1 Discovery範囲
+{% if discovery_strategy.scope %}
+{{ discovery_strategy.scope }}
+{% else %}
+- **フェーズ1**: データセンター内の物理サーバーとネットワーク機器
+- **フェーズ2**: 仮想化環境とクラウドリソース
+- **フェーズ3**: アプリケーションとサービス依存関係
+{% endif %}
+
+### 6.2 MIDサーバー配置
+
+| ロケーション | MIDサーバー数 | 対象CI数（概算） | 備考 |
+|--------------|---------------|------------------|------|
+{% if discovery_strategy.mid_servers %}
+{% for mid in discovery_strategy.mid_servers %}
+| {{ mid.location }} | {{ mid.count }} | {{ mid.target_cis }} | {{ mid.notes | default('-') }} |
+{% endfor %}
+{% else %}
+| 東京DC | 2 | 500 | 冗長構成 |
+| 大阪DC | 2 | 300 | 冗長構成 |
+| AWS環境 | 1 | 200 | クラウド専用 |
+{% endif %}
+
+### 6.3 スケジュール設計
+
+| Discovery種別 | 実行頻度 | 実行時間 | 対象 |
+|--------------|----------|----------|------|
+| インフラDiscovery | 日次 | 02:00-04:00 | サーバー、ネットワーク |
+| アプリDiscovery | 週次 | 土曜 22:00 | アプリケーション |
+| Service Mapping | 月次 | 第1日曜 | サービス依存関係 |
+
+---
+
+## 7. データ品質管理
+
+### 7.1 品質指標
+
+| 指標 | 目標値 | 測定方法 |
+|------|--------|----------|
+| CI完全性 | 95%以上 | 必須属性の充足率 |
+| CI正確性 | 98%以上 | 手動検証との一致率 |
+| 関係性カバレッジ | 90%以上 | 定義された関係性の実装率 |
+| データ鮮度 | 24時間以内 | 最終更新からの経過時間 |
+
+### 7.2 データクレンジング
+
+- 重複CIの定期的な検出と統合
+- 孤立CIの識別と削除
+- 不整合データの修正
+- 定期的な棚卸し（四半期ごと）
+
+---
+
+## 8. 実装計画
+
+### 8.1 実装フェーズ
+
+{% if implementation_plan.phases %}
+{% for phase in implementation_plan.phases %}
+#### フェーズ{{ loop.index }}: {{ phase.name }}
+- **期間**: {{ phase.duration }}
+- **対象**: {{ phase.target }}
+- **成果物**: {{ phase.deliverables }}
+{% endfor %}
+{% else %}
+#### フェーズ1: 基盤構築（4週間）
+- CIクラス定義の実装
+- 識別・正規化ルールの設定
+- MIDサーバーのセットアップ
+
+#### フェーズ2: Discovery実装（6週間）
+- Discovery Schedule設定
+- Credential設定
+- Pattern/Probeカスタマイズ
+
+#### フェーズ3: Service Mapping（4週間）
+- ビジネスサービス定義
+- 依存関係マッピング
+- 影響分析設定
+
+#### フェーズ4: 統合・最適化（2週間）
+- 他プロセスとの統合
+- パフォーマンスチューニング
+- 運用手順確立
+{% endif %}
+
+---
+
+## 9. テスト計画
+
+### 9.1 テストシナリオ
+
+| テスト項目 | 目的 | 合格基準 |
+|------------|------|----------|
+| Discovery精度テスト | CI自動検出の精度確認 | 95%以上の検出率 |
+| 識別ルールテスト | CI重複防止の確認 | 重複率1%未満 |
+| 関係性マッピングテスト | 依存関係の正確性確認 | 手動検証との90%一致 |
+| パフォーマンステスト | Discovery実行時間 | 2時間以内で完了 |
+| 影響分析テスト | 変更影響の正確性 | 影響範囲の100%検出 |
+
+### 9.2 受入基準
+
+- すべてのビジネスクリティカルなCIが登録されている
+- サービス依存関係が正確にマッピングされている
+- Discovery実行がスケジュール通りに完了する
+- データ品質指標が目標値を達成している
+
+---
+
+## 10. リスクと対策
+
+{% if risks %}
+{% for risk in risks %}
+### リスク{{ loop.index }}: {{ risk.name }}
+- **影響度**: {{ risk.impact }}
+- **発生可能性**: {{ risk.probability }}
+- **対策**: {{ risk.mitigation }}
+{% endfor %}
+{% else %}
+### リスク1: Discovery負荷によるシステム影響
+- **影響度**: 高
+- **発生可能性**: 中
+- **対策**: 
+  - 段階的なDiscovery範囲の拡大
+  - 非営業時間での実行
+  - リソース使用率の監視
+
+### リスク2: 既存CMDBデータとの不整合
+- **影響度**: 高
+- **発生可能性**: 高
+- **対策**:
+  - データマッピング設計の詳細化
+  - 段階的な移行アプローチ
+  - ロールバック計画の準備
+
+### リスク3: ネットワークセキュリティ制約
+- **影響度**: 中
+- **発生可能性**: 中
+- **対策**:
+  - セキュリティチームとの事前調整
+  - 必要なポート・プロトコルの文書化
+  - 段階的なアクセス許可の取得
+{% endif %}
+
+---
+
+## 付録
+
+### A. 用語集
+- **CI (Configuration Item)**: 構成アイテム
+- **CMDB (Configuration Management Database)**: 構成管理データベース
+- **Discovery**: 自動検出機能
+- **MID Server**: Management, Instrumentation, and Discovery Server
+
+### B. 参考資料
+- ServiceNow CMDB Best Practices
+- ITIL v4 Service Asset and Configuration Management
+- 社内IT資産管理規程
+
+### C. 変更履歴
+| バージョン | 日付 | 変更内容 | 変更者 |
+|------------|------|----------|--------|
+| {{ version }} | {{ created_date | date_format }} | 初版作成 | {{ author.name }} |

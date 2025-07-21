@@ -1,0 +1,411 @@
+# {{ project_name }} - セキュリティ設計書
+
+**バージョン:** {{ version }}  
+**作成者:** {{ author.name }}  
+**作成日:** {{ created_date | date_format }}  
+**ドキュメントタイプ:** セキュリティ設計書
+
+---
+
+## 1. 概要
+
+### 1.1 目的
+本書は、{{ project_name }}におけるServiceNow実装のセキュリティ設計を定義し、システムとデータの保護、アクセス制御、コンプライアンス要件への対応方針を明確にします。
+
+### 1.2 セキュリティ目標
+{% for objective in security_requirements.objectives %}
+- {{ objective }}
+{% endfor %}
+
+### 1.3 セキュリティ原則
+{% for principle in security_requirements.principles %}
+- {{ principle }}
+{% endfor %}
+
+### 1.4 スコープ
+
+#### 対象範囲
+{% for item in security_requirements.scope.in_scope %}
+- {{ item }}
+{% endfor %}
+
+#### 対象外
+{% for item in security_requirements.scope.out_of_scope %}
+- {{ item }}
+{% endfor %}
+
+---
+
+## 2. セキュリティ要件
+
+### 2.1 機能要件
+
+| 要件ID | 要件内容 | 優先度 |
+|--------|----------|--------|
+| SEC-001 | 多要素認証（MFA）の実装 | 高 |
+| SEC-002 | ロールベースアクセス制御（RBAC） | 高 |
+| SEC-003 | データ暗号化（保存時・転送時） | 高 |
+| SEC-004 | セッション管理とタイムアウト | 中 |
+| SEC-005 | 監査ログの完全性確保 | 高 |
+
+### 2.2 非機能要件
+
+| 要件ID | 要件内容 | 目標値 |
+|--------|----------|--------|
+| SEC-101 | 認証処理時間 | 3秒以内 |
+| SEC-102 | ログ保持期間 | 1年以上 |
+| SEC-103 | 暗号化強度 | AES-256以上 |
+| SEC-104 | パスワードポリシー | 12文字以上、複雑性要件 |
+
+---
+
+## 3. アクセス制御設計
+
+### 3.1 アクセス制御モデル
+- **採用モデル**: {{ access_control_model.model }}
+- **実装方式**: ServiceNow標準のRole/ACL機能を使用
+
+### 3.2 ロール設計
+
+#### 管理者ロール
+{% for role in access_control_model.role_hierarchy.admin_roles %}
+- **{{ role.name }}**: {{ role.description }}
+{% endfor %}
+
+#### プロセスロール
+{% for role in access_control_model.role_hierarchy.process_roles %}
+- **{{ role.name }}**: {{ role.description }}
+{% endfor %}
+
+#### ユーザーロール
+{% for role in access_control_model.role_hierarchy.user_roles %}
+- **{{ role.name }}**: {{ role.description }}
+{% endfor %}
+
+### 3.3 ACL（Access Control List）設計
+
+#### テーブルレベルACL
+| テーブル | 操作 | 許可ロール | 条件 |
+|----------|------|-------------|------|
+| incident | create | itil_user, itil | - |
+| incident | read | itil_user, itil | assigned_to=gs.getUserID() OR caller_id=gs.getUserID() |
+| incident | write | itil | assigned_to=gs.getUserID() |
+| incident | delete | admin | - |
+
+#### フィールドレベルACL
+| テーブル.フィールド | 操作 | 許可ロール | 条件 |
+|---------------------|------|-------------|------|
+| incident.priority | write | itil, incident_manager | - |
+| incident.assignment_group | write | itil | - |
+
+---
+
+## 4. 認証・認可設計
+
+### 4.1 認証方式
+
+{% if authentication_method.primary %}
+#### 主認証方式: {{ authentication_method.primary }}
+{{ authentication_method.primary_details }}
+{% else %}
+#### 主認証方式: SAML 2.0 SSO
+- **IdP**: Azure Active Directory / Okta
+- **認証フロー**: SP-initiated SSO
+- **属性マッピング**:
+  - NameID → user_name
+  - email → email
+  - department → department
+{% endif %}
+
+#### 多要素認証（MFA）
+- **対象ユーザー**: 管理者権限を持つすべてのユーザー
+- **認証方式**: 
+  - SMS OTP
+  - Authenticatorアプリ（Microsoft Authenticator、Google Authenticator）
+  - FIDO2セキュリティキー
+
+### 4.2 セッション管理
+
+| 設定項目 | 値 | 説明 |
+|----------|-----|------|
+| セッションタイムアウト | 30分 | 非アクティブ時の自動ログアウト |
+| 絶対タイムアウト | 8時間 | 最大セッション継続時間 |
+| 同時セッション数 | 1 | ユーザーあたりの同時ログイン数 |
+| Remember Me | 無効 | セキュリティ上、無効化 |
+
+### 4.3 パスワードポリシー
+
+| ポリシー項目 | 設定値 |
+|--------------|--------|
+| 最小文字数 | 12文字 |
+| 複雑性要件 | 大文字、小文字、数字、特殊文字から3種類以上 |
+| 有効期限 | 90日 |
+| 履歴保持数 | 12個 |
+| ロックアウト閾値 | 5回失敗 |
+| ロックアウト期間 | 30分 |
+
+---
+
+## 5. データ暗号化設計
+
+### 5.1 暗号化範囲
+
+{% if encryption_strategy.scope %}
+{{ encryption_strategy.scope }}
+{% else %}
+#### 保存時暗号化（Encryption at Rest）
+- **対象データ**:
+  - 個人情報を含むフィールド
+  - パスワード、APIキー等の認証情報
+  - 機密扱いの添付ファイル
+- **暗号化方式**: AES-256-GCM
+- **鍵管理**: ServiceNow Edge Encryption
+
+#### 転送時暗号化（Encryption in Transit）
+- **プロトコル**: TLS 1.2以上
+- **暗号スイート**: 
+  - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+- **証明書**: EV SSL証明書使用
+{% endif %}
+
+### 5.2 暗号化対象フィールド
+
+| テーブル | フィールド | 暗号化タイプ |
+|----------|------------|--------------|
+| sys_user | employee_number | Type II |
+| sys_user | phone | Type II |
+| sys_user | mobile_phone | Type II |
+| incident | u_sensitive_data | Type III |
+| sys_attachment | attachment | Type III |
+
+---
+
+## 6. ネットワークセキュリティ
+
+### 6.1 ネットワークアクセス制御
+
+#### IPアドレス制限
+- **管理者アクセス**: 社内IPアドレスのみ許可
+- **一般ユーザー**: 制限なし（VPN推奨）
+- **API/統合**: 事前登録IPのみ許可
+
+#### ファイアウォールルール
+| 送信元 | 送信先 | プロトコル/ポート | 用途 |
+|--------|--------|-------------------|------|
+| ユーザー端末 | ServiceNow | HTTPS/443 | Web UI |
+| MID Server | ServiceNow | HTTPS/443 | Discovery |
+| 外部システム | ServiceNow | HTTPS/443 | REST API |
+
+### 6.2 MIDサーバーセキュリティ
+
+- **配置**: DMZ内に配置
+- **通信**: ServiceNowへの片方向通信（アウトバウンドのみ）
+- **認証**: 証明書ベース認証
+- **暗号化**: すべての通信をTLS暗号化
+
+---
+
+## 7. 監査・ログ設計
+
+### 7.1 監査ログ要件
+
+#### ログ取得対象イベント
+{% if audit_logging.events %}
+{% for event in audit_logging.events %}
+- {{ event }}
+{% endfor %}
+{% else %}
+- ユーザーログイン/ログアウト
+- 権限昇格
+- データアクセス（機密データ）
+- 設定変更
+- ユーザー/ロール管理操作
+- セキュリティ違反の試行
+{% endif %}
+
+### 7.2 ログ保持設計
+
+| ログタイプ | 保持期間 | 保存場所 | バックアップ |
+|-----------|----------|----------|--------------|
+| 認証ログ | 1年 | ServiceNow + SIEM | 日次 |
+| アクセスログ | 1年 | ServiceNow + SIEM | 日次 |
+| 変更ログ | 3年 | ServiceNow | 週次 |
+| エラーログ | 90日 | ServiceNow | なし |
+
+### 7.3 ログ分析とアラート
+
+| 監視項目 | 閾値 | アラート先 |
+|----------|------|------------|
+| ログイン失敗 | 5回/5分 | セキュリティチーム |
+| 権限昇格 | 即時 | セキュリティチーム |
+| 大量データエクスポート | 1000件以上 | セキュリティチーム |
+| 設定変更 | 即時 | システム管理者 |
+
+---
+
+## 8. コンプライアンス対応
+
+### 8.1 準拠する規制・基準
+
+{% if compliance_requirements %}
+{% for req in compliance_requirements %}
+#### {{ req.name }}
+- **要件**: {{ req.requirements }}
+- **対応策**: {{ req.measures }}
+{% endfor %}
+{% else %}
+#### 個人情報保護法
+- **要件**: 個人情報の適切な取扱いと保護
+- **対応策**:
+  - データ暗号化の実装
+  - アクセス制御の厳格化
+  - 同意管理機能の実装
+  - データ削除機能の提供
+
+#### ISO 27001
+- **要件**: 情報セキュリティマネジメントシステム
+- **対応策**:
+  - リスクアセスメントの実施
+  - セキュリティポリシーの策定
+  - 定期的な監査の実施
+  - 継続的改善プロセス
+
+#### SOC 2
+- **要件**: セキュリティ、可用性、処理の完全性
+- **対応策**:
+  - アクセス制御の文書化
+  - 変更管理プロセスの確立
+  - インシデント対応手順の整備
+{% endif %}
+
+### 8.2 データプライバシー
+
+#### 個人情報の取扱い
+- **収集**: 必要最小限の情報のみ収集
+- **利用**: 明示した目的内でのみ利用
+- **保管**: 暗号化して安全に保管
+- **削除**: 保持期限経過後、自動削除
+
+#### データ主体の権利
+- アクセス権（データ開示要求）
+- 訂正権（データ修正要求）
+- 削除権（忘れられる権利）
+- データポータビリティ権
+
+---
+
+## 9. セキュリティ運用
+
+### 9.1 脆弱性管理
+
+#### パッチ管理
+- **頻度**: 月次（緊急パッチは即時）
+- **プロセス**:
+  1. ServiceNowセキュリティアドバイザリの確認
+  2. テスト環境での検証
+  3. 変更管理プロセスに従った適用
+  4. 適用後の動作確認
+
+#### 脆弱性スキャン
+- **内部スキャン**: 週次
+- **外部スキャン**: 月次
+- **ペネトレーションテスト**: 年次
+
+### 9.2 セキュリティ監視
+
+#### SOC（Security Operation Center）連携
+- **監視時間**: 24時間365日
+- **監視対象**:
+  - 不正アクセス試行
+  - 異常なデータアクセス
+  - システム改ざん試行
+  - DDoS攻撃
+
+#### KPI/メトリクス
+| 指標 | 目標値 | 測定頻度 |
+|------|--------|----------|
+| パッチ適用率 | 100% | 月次 |
+| セキュリティインシデント数 | 0件 | 月次 |
+| 平均検知時間（MTTD） | 30分以内 | 月次 |
+| 平均対応時間（MTTR） | 4時間以内 | 月次 |
+
+---
+
+## 10. インシデント対応
+
+### 10.1 インシデント分類
+
+| レベル | 定義 | 例 | 初動対応時間 |
+|--------|------|-----|--------------|
+| Critical | ビジネスへの重大な影響 | データ漏洩、システム侵害 | 15分 |
+| High | 限定的なビジネス影響 | 権限昇格、DDoS攻撃 | 30分 |
+| Medium | 潜在的なリスク | 脆弱性検出、ポリシー違反 | 2時間 |
+| Low | 軽微な問題 | ログイン失敗の増加 | 24時間 |
+
+### 10.2 対応手順
+
+#### 1. 検知・分類
+- アラート受信
+- 影響度評価
+- インシデントレベル判定
+
+#### 2. 封じ込め
+- 影響範囲の特定
+- 被害拡大防止措置
+- 証拠保全
+
+#### 3. 根絶
+- 原因究明
+- 脆弱性修正
+- 不正アクセス経路遮断
+
+#### 4. 復旧
+- システム正常性確認
+- サービス再開
+- 監視強化
+
+#### 5. 事後対応
+- インシデントレポート作成
+- 再発防止策の実施
+- ステークホルダーへの報告
+
+### 10.3 連絡体制
+
+```
+セキュリティインシデント発生
+　　　　　↓
+　SOC（初動対応）
+　　　　　↓
+セキュリティチームリーダー
+　　　　　↓
+　　　┌─────┬─────┐
+　　　↓　　　　　↓　　　　　↓
+　CISO　　　IT部門長　　法務部門
+　　　↓
+　経営層（Critical時）
+```
+
+---
+
+## 付録
+
+### A. セキュリティチェックリスト
+- [ ] すべての管理者アカウントでMFA有効化
+- [ ] 不要なデフォルトアカウントの無効化
+- [ ] ACLの設定確認とテスト
+- [ ] 暗号化設定の確認
+- [ ] 監査ログの動作確認
+- [ ] バックアップリストアテスト
+- [ ] インシデント対応訓練の実施
+
+### B. 参考資料
+- ServiceNow Security Best Practices
+- NIST Cybersecurity Framework
+- ISO/IEC 27001:2013
+- OWASP Top 10
+
+### C. 変更履歴
+| バージョン | 日付 | 変更内容 | 変更者 |
+|------------|------|----------|--------|
+| {{ version }} | {{ created_date | date_format }} | 初版作成 | {{ author.name }} |
