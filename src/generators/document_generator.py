@@ -7,6 +7,9 @@ from src.models.document import DocumentType, User
 from src.templates.cmdb_design import CMDBDesignTemplate
 from src.templates.security_design import SecurityDesignTemplate
 from src.templates.environment_release import EnvironmentReleaseTemplate
+from src.templates.incident_management import IncidentManagementTemplate
+from src.templates.problem_management import ProblemManagementTemplate
+from src.templates.change_management import ChangeManagementTemplate
 
 
 class DocumentGenerator:
@@ -17,6 +20,9 @@ class DocumentGenerator:
         DocumentType.CMDB_DESIGN: CMDBDesignTemplate,
         DocumentType.SECURITY_DESIGN: SecurityDesignTemplate,
         DocumentType.ENVIRONMENT_STRATEGY: EnvironmentReleaseTemplate,
+        DocumentType.INCIDENT_MANAGEMENT: IncidentManagementTemplate,
+        DocumentType.PROBLEM_MANAGEMENT: ProblemManagementTemplate,
+        DocumentType.CHANGE_MANAGEMENT: ChangeManagementTemplate,
     }
     
     def __init__(self, output_dir: Optional[Path] = None):
@@ -164,6 +170,88 @@ class DocumentGenerator:
                         }
                     ]
                 }
+            }
+        
+        elif document_type == DocumentType.INCIDENT_MANAGEMENT:
+            return {
+                "incident_categories": [
+                    {
+                        "category": "ハードウェア",
+                        "subcategories": ["サーバー", "ネットワーク機器", "PC"],
+                        "assignment_group": "インフラチーム"
+                    },
+                    {
+                        "category": "ソフトウェア", 
+                        "subcategories": ["OS", "アプリケーション", "データベース"],
+                        "assignment_group": "アプリケーションチーム"
+                    }
+                ],
+                "sla_definitions": [
+                    {
+                        "priority": "P1 - Critical",
+                        "response_time": "15分",
+                        "resolution_time": "4時間",
+                        "escalation_time": "1時間"
+                    },
+                    {
+                        "priority": "P2 - High",
+                        "response_time": "30分",
+                        "resolution_time": "8時間",
+                        "escalation_time": "2時間"
+                    }
+                ]
+            }
+        
+        elif document_type == DocumentType.PROBLEM_MANAGEMENT:
+            return {
+                "problem_categories": [
+                    {
+                        "category": "インフラストラクチャ",
+                        "description": "ハードウェア、ネットワーク関連",
+                        "examples": ["サーバー障害", "ネットワーク輻輳"]
+                    },
+                    {
+                        "category": "アプリケーション",
+                        "description": "ソフトウェア関連",
+                        "examples": ["バグ", "パフォーマンス問題"]
+                    }
+                ],
+                "kpi_metrics": [
+                    {
+                        "name": "問題解決時間",
+                        "description": "問題記録から解決までの平均時間",
+                        "target": "30日以内",
+                        "measurement": "月次"
+                    }
+                ]
+            }
+        
+        elif document_type == DocumentType.CHANGE_MANAGEMENT:
+            return {
+                "change_types": [
+                    {
+                        "type": "標準変更",
+                        "description": "事前承認済み、低リスクの変更",
+                        "approval": "自動承認",
+                        "lead_time": "即時",
+                        "examples": ["パスワードリセット", "ユーザー権限付与"]
+                    },
+                    {
+                        "type": "通常変更",
+                        "description": "標準的なCABプロセスに従う変更",
+                        "approval": "CAB承認",
+                        "lead_time": "5営業日",
+                        "examples": ["サーバーパッチ適用", "アプリケーション更新"]
+                    }
+                ],
+                "kpi_metrics": [
+                    {
+                        "name": "変更成功率",
+                        "description": "計画通り完了した変更の割合",
+                        "target": "95%以上",
+                        "formula": "成功変更数 / 実施変更総数 × 100"
+                    }
+                ]
             }
         
         return {}
