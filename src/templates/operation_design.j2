@@ -1,0 +1,552 @@
+# {{ project_name }} - 運用設計書
+
+**バージョン:** {{ version }}  
+**作成者:** {{ author.name }}  
+**作成日:** {{ created_date | date_format }}  
+**ドキュメントタイプ:** 運用設計書
+
+---
+
+## 1. 概要
+
+### 1.1 目的
+{{ operation_overview.purpose }}
+
+### 1.2 適用範囲
+{{ operation_overview.scope }}
+
+### 1.3 運用目標
+{% for objective in operation_overview.objectives %}
+- {{ objective }}
+{% endfor %}
+
+### 1.4 サービス提供時間
+
+- **営業時間**: {{ operation_overview.service_hours.business_hours }}
+- **拡張時間**: {{ operation_overview.service_hours.extended_hours }}
+- **緊急対応**: {{ operation_overview.service_hours.emergency_support }}
+
+---
+
+## 2. 運用体制
+
+### 2.1 運用モデル
+{{ organization.operation_model }}
+
+### 2.2 運用チーム構成
+
+{% for team in organization.teams %}
+#### {{ team.team }}
+- **チーム規模**: {{ team.size }}
+- **責任範囲**: {{ team.responsibility }}
+- **スキルレベル**: {{ team.skill_level }}
+- **拠点**: {{ team.location }}
+
+{% endfor %}
+
+### 2.3 役割と責任
+
+{% for role in organization.roles_responsibilities %}
+#### {{ role.role }}（{{ role.count }}名）
+**責任範囲**:
+{% for responsibility in role.responsibilities %}
+- {{ responsibility }}
+{% endfor %}
+
+{% endfor %}
+
+### 2.4 運用体制図
+
+```
+┌─────────────────────────────────────────────┐
+│　　　　　　運用マネージャー　　　　　　　　　│
+│　　　　　　　　（統括）　　　　　　　　　　　│
+├─────────────┬─────────────┬─────────────┤
+│ ServiceNow  │ インフラ    │ 監視センター│
+│ 管理チーム  │ 運用チーム  │ （24h365d） │
+│   5名       │   3名       │   12名      │
+├─────────────┴─────────────┴─────────────┤
+│　　　　　ヘルプデスク（8名）　　　　　　　　│
+└─────────────────────────────────────────────┘
+```
+
+### 2.5 勤務体制
+
+| チーム | 平日 | 土日祝 | 夜間 | 備考 |
+|--------|------|--------|------|------|
+| ServiceNow管理 | 8:00-18:00 | オンコール | オンコール | 緊急時対応 |
+| インフラ運用 | 8:00-20:00 | オンコール | オンコール | 交代制 |
+| 監視センター | 24時間 | 24時間 | 24時間 | 3交代制 |
+| ヘルプデスク | 8:00-18:00 | - | - | 平日のみ |
+
+---
+
+## 3. 監視・保守
+
+### 3.1 監視対象
+
+{% for scope in monitoring_maintenance.monitoring_scope %}
+- {{ scope }}
+{% endfor %}
+
+### 3.2 監視ツール
+
+{% for tool in monitoring_maintenance.monitoring_tools %}
+#### {{ tool.tool }}
+- **用途**: {{ tool.purpose }}
+- **監視項目**: {{ tool.metrics }}
+
+{% endfor %}
+
+### 3.3 アラート設定
+
+{% for rule in monitoring_maintenance.alerting_rules %}
+#### {{ rule.metric }}
+- **警告レベル**: {{ rule.warning }}
+- **重要レベル**: {{ rule.critical }}
+- **対応アクション**: {{ rule.action }}
+
+{% endfor %}
+
+### 3.4 監視ダッシュボード
+
+```
+┌─────────────────────────────────────────────┐
+│　　　　ServiceNow運用ダッシュボード　　　　　│
+├─────────────┬─────────────┬─────────────────┤
+│ システム状況│ 性能指標    │ ユーザー状況   │
+│ ●正常稼働  │ 応答: 2.1s  │ 接続数: 245    │
+│ 可用性:99.8%│ CPU: 45%    │ ピーク: 780    │
+├─────────────┴─────────────┴─────────────────┤
+│　　　　　　　アラート状況　　　　　　　　　　│
+│ 重要: 0件　警告: 2件　情報: 5件             │
+├─────────────────────────────────────────────┤
+│　　　　　　過去24時間のトレンド　　　　　　　│
+│ [応答時間・接続数・エラー率のグラフ]         │
+└─────────────────────────────────────────────┘
+```
+
+### 3.5 ログ管理
+
+| ログタイプ | 保存期間 | 場所 | 用途 |
+|-----------|----------|------|------|
+| アプリケーションログ | 90日 | ServiceNow | 動作確認・問題調査 |
+| システムログ | 1年 | ログサーバー | セキュリティ・監査 |
+| アクセスログ | 1年 | SIEM | アクセス解析・調査 |
+| エラーログ | 2年 | 監視システム | 障害調査・傾向分析 |
+
+---
+
+## 4. バックアップ・復旧
+
+### 4.1 バックアップ戦略
+
+{% for backup_type in backup_recovery.backup_strategy.backup_types %}
+#### {{ backup_type.type }}
+- **実行頻度**: {{ backup_type.frequency }}
+- **保存期間**: {{ backup_type.retention }}
+- **保存場所**: {{ backup_type.storage }}
+
+{% endfor %}
+
+**バックアップ検証**: {{ backup_recovery.backup_strategy.backup_verification }}
+
+### 4.2 災害復旧
+
+- **RTO（目標復旧時間）**: {{ backup_recovery.disaster_recovery.rto }}
+- **RPO（目標復旧地点）**: {{ backup_recovery.disaster_recovery.rpo }}
+- **災害復旧サイト**: {{ backup_recovery.disaster_recovery.dr_site }}
+- **フェイルオーバー**: {{ backup_recovery.disaster_recovery.failover_procedure }}
+
+### 4.3 事業継続性
+
+**重要機能**:
+{% for function in backup_recovery.business_continuity.critical_functions %}
+- {{ function }}
+{% endfor %}
+
+- **代替手順**: {{ backup_recovery.business_continuity.workaround_procedures }}
+- **通信計画**: {{ backup_recovery.business_continuity.communication_plan }}
+
+### 4.4 復旧手順
+
+#### 部分障害時（30分-2時間）
+1. **障害箇所特定**: 監視システムによる自動検知
+2. **影響範囲確認**: 影響を受けるサービス・ユーザーの特定
+3. **暫定対処**: サービス迂回、負荷分散調整
+4. **根本修復**: 問題箇所の修復作業
+5. **動作確認**: 修復後のサービス動作確認
+
+#### システム全停止時（2-4時間）
+1. **緊急通知**: 全ユーザーへの障害通知
+2. **DR起動**: セカンダリサイトでのサービス開始
+3. **データ復旧**: 最新バックアップからのデータ復元
+4. **システム切替**: ユーザーアクセスの誘導
+5. **プライマリ復旧**: 主系システムの復旧後切戻し
+
+---
+
+## 5. 変更管理
+
+### 5.1 変更カテゴリ
+
+{% for category in change_management.change_categories %}
+#### {{ category.category }}
+- **承認**: {{ category.approval }}
+- **実装**: {{ category.implementation }}
+- **文書化**: {{ category.documentation }}
+
+{% endfor %}
+
+### 5.2 変更ウィンドウ
+
+{% for window in change_management.change_windows %}
+#### {{ window.window }}
+- **スケジュール**: {{ window.schedule }}
+- **適用範囲**: {{ window.scope }}
+
+{% endfor %}
+
+### 5.3 承認マトリクス
+
+{% for approval in change_management.approval_matrix %}
+#### {{ approval.change_type }}
+- **承認者**: {{ approval.approver }}
+- **適用条件**: {{ approval.condition }}
+
+{% endfor %}
+
+### 5.4 変更管理プロセス
+
+```
+[変更要求] → [影響評価] → [承認] → [実装] → [検証] → [完了]
+     ↓          ↓          ↓       ↓       ↓       ↓
+   記録開始   リスク評価   承認記録  実行記録  結果確認  文書化
+```
+
+### 5.5 緊急変更プロセス
+
+1. **緊急事態確認**: 業務影響度・緊急度の評価
+2. **口頭承認**: 運用マネージャーからの口頭承認取得
+3. **実装実行**: 最小限の変更で問題解決
+4. **事後承認**: 正式な変更承認プロセスの実行
+5. **文書化**: 変更内容・理由・結果の文書化
+
+---
+
+## 6. セキュリティ運用
+
+### 6.1 セキュリティ監視
+
+{% for monitoring in security_operations.security_monitoring %}
+- {{ monitoring }}
+{% endfor %}
+
+### 6.2 アクセス制御
+
+- **パスワードポリシー**: {{ security_operations.access_control.password_policy }}
+- **多要素認証**: {{ security_operations.access_control.mfa_requirement }}
+- **セッション管理**: {{ security_operations.access_control.session_management }}
+- **権限レビュー**: {{ security_operations.access_control.privilege_review }}
+
+### 6.3 脆弱性管理
+
+- **パッチ管理**: {{ security_operations.vulnerability_management.patch_management }}
+- **脆弱性スキャン**: {{ security_operations.vulnerability_management.vulnerability_scan }}
+- **侵入テスト**: {{ security_operations.vulnerability_management.penetration_test }}
+- **セキュリティ評価**: {{ security_operations.vulnerability_management.security_assessment }}
+
+### 6.4 インシデント対応
+
+- **検知**: {{ security_operations.incident_response.detection }}
+- **対応時間**: {{ security_operations.incident_response.response_time }}
+- **エスカレーション**: {{ security_operations.incident_response.escalation }}
+- **フォレンジック**: {{ security_operations.incident_response.forensics }}
+
+### 6.5 セキュリティ運用手順
+
+#### 日次セキュリティチェック
+- セキュリティアラートの確認・分析
+- 不正アクセス試行の検知確認
+- システム設定変更の確認
+- 新規脆弱性情報の収集
+
+#### 週次セキュリティレビュー
+- セキュリティイベントの傾向分析
+- アクセスパターンの異常検知
+- セキュリティパッチの適用計画
+- ユーザーアクセス権限の確認
+
+---
+
+## 7. 性能管理
+
+### 7.1 性能目標
+
+{% for target in performance_management.performance_targets %}
+#### {{ target.metric }}
+- **目標値**: {{ target.target }}
+- **測定頻度**: {{ target.measurement }}
+- **SLA違反**: {{ target.sla_penalty }}
+
+{% endfor %}
+
+### 7.2 キャパシティプランニング
+
+- **成長予測**: {{ performance_management.capacity_planning.growth_projection }}
+- **リソース監視**: {{ performance_management.capacity_planning.resource_monitoring }}
+- **拡張トリガー**: {{ performance_management.capacity_planning.scaling_triggers }}
+- **予算計画**: {{ performance_management.capacity_planning.budget_planning }}
+
+### 7.3 性能最適化
+
+{% for optimization in performance_management.optimization %}
+- {{ optimization }}
+{% endfor %}
+
+### 7.4 性能監視項目
+
+| 項目 | 測定方法 | しきい値 | アクション |
+|------|----------|----------|------------|
+| 応答時間 | APM監視 | 3秒以内 | 5秒超過時調査開始 |
+| スループット | トランザクション/秒 | 100TPS | 80TPS未満時要調査 |
+| 同時接続数 | セッション監視 | 1000接続 | 800接続時警告 |
+| エラー率 | エラー/総リクエスト | 1%以下 | 2%超過時調査開始 |
+| リソース使用率 | CPU・メモリ監視 | 80%以下 | 90%超過時拡張検討 |
+
+### 7.5 性能改善プロセス
+
+1. **性能問題検知**: 監視システムによる自動検知
+2. **初期分析**: ボトルネックの特定
+3. **詳細調査**: 根本原因の分析
+4. **改善策立案**: 短期・長期の対策検討
+5. **実装・検証**: 改善策の適用と効果測定
+
+---
+
+## 8. 障害対応
+
+### 8.1 障害レベル定義
+
+{% for level in incident_response.severity_levels %}
+#### {{ level.level }}
+- **判定基準**: {{ level.criteria }}
+- **初期対応**: {{ level.response_time }}
+- **エスカレーション**: {{ level.escalation }}
+- **コミュニケーション**: {{ level.communication }}
+
+{% endfor %}
+
+### 8.2 対応手順
+
+{% for procedure in incident_response.response_procedures %}
+#### {{ procedure.step }}
+- **作業内容**: {{ procedure.activities }}
+- **責任者**: {{ procedure.responsible }}
+- **SLA**: {{ procedure.sla }}
+
+{% endfor %}
+
+### 8.3 エスカレーションマトリクス
+
+{% for escalation in incident_response.escalation_matrix %}
+#### {{ escalation.level }}
+- **責任者**: {{ escalation.responsible }}
+- **対応範囲**: {{ escalation.scope }}
+
+{% endfor %}
+
+### 8.4 障害対応フロー
+
+```
+[障害検知] → [初期対応] → [影響評価] → [対応チーム招集]
+     ↓           ↓           ↓            ↓
+[自動検知]   [L1対応]   [影響範囲]    [専門チーム]
+     ↓           ↓           ↓            ↓
+[アラート]   [暫定対処]  [通知実施]    [根本対処]
+     ↓           ↓           ↓            ↓
+[記録開始]   [エスカレ]  [進捗報告]    [復旧確認]
+```
+
+### 8.5 障害コミュニケーション
+
+#### 内部通知
+- **即座通知**: 運用チーム、関係部門への第一報
+- **定期更新**: 対応状況の定期報告（重要度に応じて）
+- **完了報告**: 復旧完了・原因・対策の報告
+
+#### 外部通知
+- **ユーザー通知**: システム停止・影響範囲の通知
+- **進捗報告**: 復旧予定時刻・作業状況の報告
+- **完了通知**: サービス復旧・お詫びの連絡
+
+---
+
+## 9. 定期メンテナンス
+
+### 9.1 定期メンテナンス作業
+
+{% for maintenance in maintenance_schedule.regular_maintenance %}
+#### {{ maintenance.task }}
+- **実行頻度**: {{ maintenance.frequency }}
+- **実行時間**: {{ maintenance.time }}
+- **所要時間**: {{ maintenance.duration }}
+- **責任者**: {{ maintenance.responsible }}
+
+{% endfor %}
+
+### 9.2 計画停止メンテナンス
+
+{% for outage in maintenance_schedule.planned_outages %}
+#### {{ outage.purpose }}
+- **実行頻度**: {{ outage.frequency }}
+- **事前通知**: {{ outage.notification }}
+- **停止時間**: {{ outage.duration }}
+- **ロールバック**: {{ outage.rollback_plan }}
+
+{% endfor %}
+
+### 9.3 メンテナンス実施手順
+
+{% for checklist in maintenance_schedule.maintenance_checklist %}
+{{ loop.index }}. {{ checklist }}
+{% endfor %}
+
+### 9.4 メンテナンススケジュール
+
+```
+┌─────────────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐
+│ 作業項目    │ 月  │ 火  │ 水  │ 木  │ 金  │ 土  │ 日  │
+├─────────────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
+│ 健全性チェック│ ●   │ ●   │ ●   │ ●   │ ●   │ ●   │ ●   │
+├─────────────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
+│ ログローテート│ ●   │ ●   │ ●   │ ●   │ ●   │ ●   │ ●   │
+├─────────────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
+│ DB最適化    │     │     │     │     │     │     │ ●   │
+├─────────────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
+│ 週次メンテ  │     │     │     │     │     │ ●   │     │
+├─────────────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
+│ 月次メンテ  │     │     │     │     │     │第3土│     │
+└─────────────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
+```
+
+### 9.5 メンテナンス記録管理
+
+- **作業記録**: 実施内容・時間・結果の記録
+- **問題記録**: 発生した問題・対処方法の記録
+- **改善提案**: 作業効率化・品質向上の提案
+- **ナレッジ蓄積**: 知見・ノウハウの文書化
+
+---
+
+## 10. 運用改善
+
+### 10.1 改善サイクル
+
+- **アプローチ**: {{ operation_improvement.improvement_cycle.pdca_approach }}
+- **レビュー頻度**: {{ operation_improvement.improvement_cycle.review_frequency }}
+- **KPI監視**: {{ operation_improvement.improvement_cycle.kpi_monitoring }}
+- **フィードバック**: {{ operation_improvement.improvement_cycle.feedback_collection }}
+
+### 10.2 自動化推進
+
+{% for automation in operation_improvement.automation_initiatives %}
+- {{ automation }}
+{% endfor %}
+
+### 10.3 プロセス最適化
+
+{% for optimization in operation_improvement.process_optimization %}
+- {{ optimization }}
+{% endfor %}
+
+### 10.4 スキル向上
+
+{% for skill in operation_improvement.skill_development %}
+- {{ skill }}
+{% endfor %}
+
+### 10.5 改善活動計画
+
+#### 短期改善（3ヶ月）
+1. **アラート精度向上**: 誤検知削減、通知最適化
+2. **定型作業自動化**: バックアップ、レポート生成
+3. **ドキュメント整備**: 手順書更新、FAQ充実
+4. **監視項目追加**: ユーザーエクスペリエンス指標
+
+#### 中期改善（6ヶ月-1年）
+1. **AIops導入**: 異常検知、予兆監視の自動化
+2. **セルフサービス化**: ユーザー自己解決機能拡張
+3. **統合監視強化**: 他システムとの監視統合
+4. **自動復旧機能**: 一般的障害の自動復旧実装
+
+#### 長期改善（1年以上）
+1. **完全自動化**: 運用作業の無人化推進
+2. **予測運用**: 機械学習による障害予測
+3. **クラウド最適化**: クラウドネイティブ運用
+4. **運用高度化**: SRE（Site Reliability Engineering）実践
+
+---
+
+## 付録
+
+### A. 運用ツール一覧
+
+| カテゴリ | ツール名 | 用途 | ライセンス |
+|----------|----------|------|------------|
+| 監視 | ServiceNow Performance Analytics | アプリケーション監視 | 含まれる |
+| 監視 | Zabbix | インフラ監視 | オープンソース |
+| ログ分析 | Splunk | ログ解析・SIEM | 商用 |
+| バックアップ | Veeam | データバックアップ | 商用 |
+| ネットワーク | SolarWinds | ネットワーク監視 | 商用 |
+
+### B. 緊急連絡先
+
+| 役割 | 氏名 | 内線 | 携帯 | メール |
+|------|------|------|------|--------|
+| 運用マネージャー | ○○ ○○ | xxxx | xxx-xxxx-xxxx | xxx@company.com |
+| ServiceNow管理者 | ○○ ○○ | xxxx | xxx-xxxx-xxxx | xxx@company.com |
+| インフラ責任者 | ○○ ○○ | xxxx | xxx-xxxx-xxxx | xxx@company.com |
+| セキュリティ責任者 | ○○ ○○ | xxxx | xxx-xxxx-xxxx | xxx@company.com |
+
+### C. 運用手順書一覧
+
+1. **システム起動・停止手順**
+2. **バックアップ・リストア手順**
+3. **ユーザー管理手順**
+4. **アップデート適用手順**
+5. **障害切り分け手順**
+6. **性能調査手順**
+
+### D. SLA定義
+
+| サービス | 可用性 | 応答時間 | 復旧時間 | 測定方法 |
+|----------|--------|----------|----------|----------|
+| ServiceNow Portal | 99.9% | 3秒以内 | 4時間以内 | 月次測定 |
+| API サービス | 99.5% | 1秒以内 | 2時間以内 | リアルタイム |
+| 統合サービス | 99.0% | 5秒以内 | 8時間以内 | 日次測定 |
+
+### E. 運用KPI
+
+| KPI | 目標値 | 測定頻度 | 責任者 |
+|-----|--------|----------|--------|
+| システム可用性 | 99.9%以上 | 月次 | 運用マネージャー |
+| 平均復旧時間(MTTR) | 4時間以内 | 月次 | 運用チーム |
+| ユーザー満足度 | 4.0以上 | 四半期 | ヘルプデスク |
+| SLA達成率 | 95%以上 | 月次 | 運用マネージャー |
+
+### F. 用語集
+
+| 用語 | 定義 |
+|------|------|
+| SLA | Service Level Agreement（サービスレベル合意） |
+| RTO | Recovery Time Objective（目標復旧時間） |
+| RPO | Recovery Point Objective（目標復旧地点） |
+| MTTR | Mean Time To Recovery（平均復旧時間） |
+| MTBF | Mean Time Between Failures（平均故障間隔） |
+
+### G. 変更履歴
+
+| バージョン | 日付 | 変更内容 | 変更者 |
+|------------|------|----------|--------|
+| {{ version }} | {{ created_date | date_format }} | 初版作成 | {{ author.name }} |

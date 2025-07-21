@@ -10,6 +10,10 @@ from src.templates.environment_release import EnvironmentReleaseTemplate
 from src.templates.incident_management import IncidentManagementTemplate
 from src.templates.problem_management import ProblemManagementTemplate
 from src.templates.change_management import ChangeManagementTemplate
+from src.templates.service_catalog import ServiceCatalogTemplate
+from src.templates.test_design import TestDesignTemplate
+from src.templates.data_migration import DataMigrationTemplate
+from src.templates.operation_design import OperationDesignTemplate
 
 
 class DocumentGenerator:
@@ -23,6 +27,10 @@ class DocumentGenerator:
         DocumentType.INCIDENT_MANAGEMENT: IncidentManagementTemplate,
         DocumentType.PROBLEM_MANAGEMENT: ProblemManagementTemplate,
         DocumentType.CHANGE_MANAGEMENT: ChangeManagementTemplate,
+        DocumentType.SERVICE_CATALOG: ServiceCatalogTemplate,
+        DocumentType.TEST_DESIGN: TestDesignTemplate,
+        DocumentType.DATA_MIGRATION: DataMigrationTemplate,
+        DocumentType.OPERATION_DESIGN: OperationDesignTemplate,
     }
     
     def __init__(self, output_dir: Optional[Path] = None):
@@ -252,6 +260,103 @@ class DocumentGenerator:
                         "formula": "成功変更数 / 実施変更総数 × 100"
                     }
                 ]
+            }
+        
+        elif document_type == DocumentType.SERVICE_CATALOG:
+            return {
+                "service_categories": [
+                    {
+                        "name": "エンドユーザーサービス",
+                        "description": "従業員の日常業務をサポートするサービス",
+                        "icon": "fas fa-user",
+                        "subcategories": ["ハードウェアリクエスト", "ソフトウェアリクエスト", "アカウント管理"]
+                    }
+                ],
+                "service_items": [
+                    {
+                        "name": "新規PCセットアップ",
+                        "category": "エンドユーザーサービス",
+                        "description": "新入社員または既存社員向けの新規PC環境のセットアップ",
+                        "sla": "5営業日",
+                        "cost": "部門負担",
+                        "approval_required": True,
+                        "fulfillment_group": "デスクトップサポートチーム"
+                    }
+                ],
+                "kpi_metrics": [
+                    {
+                        "name": "カタログ利用率",
+                        "description": "全リクエストに占めるカタログ経由の割合",
+                        "target": "80%以上",
+                        "formula": "カタログリクエスト数 / 全リクエスト数 × 100"
+                    }
+                ]
+            }
+        
+        elif document_type == DocumentType.TEST_DESIGN:
+            return {
+                "test_phases": [
+                    {
+                        "phase": "単体テスト（UT）",
+                        "duration": "2週間",
+                        "responsible": "開発チーム",
+                        "scope": "個別機能、スクリプト、ワークフロー",
+                        "tools": "ServiceNow ATF, スクリプトデバッガー"
+                    },
+                    {
+                        "phase": "受入テスト（UAT）",
+                        "duration": "3週間",
+                        "responsible": "ビジネスユーザー",
+                        "scope": "ビジネスシナリオ、ユーザビリティ",
+                        "tools": "手動テスト、ServiceNowポータル"
+                    }
+                ],
+                "test_metrics": [
+                    {
+                        "metric": "テスト進捗率",
+                        "formula": "実行済テストケース数 / 全テストケース数 × 100",
+                        "target": "計画通り",
+                        "frequency": "日次"
+                    }
+                ]
+            }
+        
+        elif document_type == DocumentType.DATA_MIGRATION:
+            return {
+                "source_systems": [
+                    {
+                        "system_name": "既存ITSM（Remedy）",
+                        "system_type": "インシデント・問題管理",
+                        "database_type": "Oracle 19c",
+                        "data_volume": "500万件（過去5年分）",
+                        "complexity": "高",
+                        "migration_priority": "1"
+                    }
+                ],
+                "migration_phases": [
+                    {
+                        "phase": "Phase 1: マスターデータ移行",
+                        "duration": "2週間",
+                        "activities": ["ユーザー・組織マスター移行", "CI分類・カテゴリ移行"],
+                        "deliverables": ["マスターデータ移行完了", "検証レポート"]
+                    }
+                ]
+            }
+        
+        elif document_type == DocumentType.OPERATION_DESIGN:
+            return {
+                "organization": {
+                    "operation_model": "ハイブリッド運用（内製＋外部委託）",
+                    "teams": [
+                        {
+                            "team": "ServiceNow管理チーム",
+                            "size": "5名",
+                            "responsibility": "プラットフォーム管理、設定変更、ユーザーサポート",
+                            "skill_level": "エキスパート",
+                            "location": "社内"
+                        }
+                    ]
+                }
             }
         
         return {}

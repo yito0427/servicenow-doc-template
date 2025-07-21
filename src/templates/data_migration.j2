@@ -1,0 +1,587 @@
+# {{ project_name }} - データ移行計画書
+
+**バージョン:** {{ version }}  
+**作成者:** {{ author.name }}  
+**作成日:** {{ created_date | date_format }}  
+**ドキュメントタイプ:** データ移行計画書
+
+---
+
+## 1. 概要
+
+### 1.1 目的
+{{ migration_overview.purpose }}
+
+### 1.2 スコープ
+{{ migration_overview.scope }}
+
+### 1.3 目標
+{% for objective in migration_overview.objectives %}
+- {{ objective }}
+{% endfor %}
+
+### 1.4 制約条件
+{% for constraint in migration_overview.constraints %}
+- {{ constraint }}
+{% endfor %}
+
+---
+
+## 2. 移行戦略
+
+### 2.1 移行アプローチ
+{{ migration_strategy.approach }}
+
+### 2.2 移行タイプ別戦略
+
+{% for migration_type in migration_strategy.migration_types %}
+#### {{ migration_type.type }}
+- **対象**: {{ migration_type.target }}
+- **実施タイミング**: {{ migration_type.timing }}
+- **選定理由**: {{ migration_type.rationale }}
+
+{% endfor %}
+
+### 2.3 カットオーバー戦略
+
+- **実施期間**: {{ migration_strategy.cutover_strategy.duration }}
+- **フォールバック期限**: {{ migration_strategy.cutover_strategy.fallback_window }}
+- **検証時間**: {{ migration_strategy.cutover_strategy.validation_time }}
+
+### 2.4 並行稼働
+
+- **期間**: {{ migration_strategy.parallel_run.duration }}
+- **目的**: {{ migration_strategy.parallel_run.purpose }}
+- **対象範囲**: {{ migration_strategy.parallel_run.scope }}
+
+### 2.5 移行戦略の決定要因
+
+| 要因 | 評価 | 影響 |
+|------|------|------|
+| データ量 | 大（500万件以上） | 段階的移行が必要 |
+| システム複雑性 | 高（複数システム連携） | 十分な検証期間確保 |
+| 業務継続性 | 最重要 | 最小停止時間での実施 |
+| リスク許容度 | 低 | 保守的アプローチ採用 |
+
+---
+
+## 3. データ分析
+
+### 3.1 移行元システム
+
+{% for system in source_systems %}
+#### {{ system.system_name }}
+- **システム種別**: {{ system.system_type }}
+- **データベース**: {{ system.database_type }}
+- **データ量**: {{ system.data_volume }}
+- **複雑度**: {{ system.complexity }}
+- **移行優先度**: {{ system.migration_priority }}
+
+{% endfor %}
+
+### 3.2 データエンティティ分析
+
+{% for entity in data_entities %}
+#### {{ entity.entity_name }}
+- **移行元テーブル**: {{ entity.source_table }}
+- **移行先テーブル**: {{ entity.target_table }}
+- **レコード数**: {{ entity.record_count }}
+- **移行タイプ**: {{ entity.migration_type }}
+- **優先度**: {{ entity.priority }}
+- **複雑度**: {{ entity.complexity }}
+
+{% endfor %}
+
+### 3.3 データ品質分析結果
+
+| 品質指標 | 現状 | 目標 | 対策 |
+|----------|------|------|------|
+| 完全性 | 85% | 98% | 欠損値補完ルール適用 |
+| 一意性 | 92% | 100% | 重複データ除去処理 |
+| 正確性 | 78% | 95% | データクレンジング実施 |
+| 一貫性 | 88% | 98% | フォーマット統一処理 |
+| 適時性 | 65% | 90% | 最新データ優先ルール |
+
+### 3.4 データボリューム分析
+
+```
+データ量推移（過去5年）
+インシデント: 100万件 → 120万件 → 150万件 → 180万件 → 300万件
+変更要求:     1万件   → 1.5万件  → 2万件   → 2.5万件  → 3万件
+CI:          3万件   → 3.5万件  → 4万件   → 4.5万件  → 5万件
+```
+
+---
+
+## 4. 移行設計
+
+### 4.1 移行フェーズ
+
+{% for phase in migration_phases %}
+#### {{ phase.phase }}
+- **期間**: {{ phase.duration }}
+- **主な活動**:
+{% for activity in phase.activities %}
+  - {{ activity }}
+{% endfor %}
+- **成果物**:
+{% for deliverable in phase.deliverables %}
+  - {{ deliverable }}
+{% endfor %}
+
+{% endfor %}
+
+### 4.2 移行スケジュール
+
+```
+┌─────────────────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐
+│ フェーズ        │ W1  │ W2  │ W3  │ W4  │ W5  │ W6  │ W7  │ W8  │
+├─────────────────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
+│ Phase 0: 準備   │████ │████ │████ │████ │     │     │     │     │
+├─────────────────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
+│ Phase 1: マスタ │     │     │     │     │████ │████ │     │     │
+├─────────────────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
+│ Phase 2: 履歴   │     │     │     │     │     │     │████ │     │
+├─────────────────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
+│ Phase 3: CO     │     │     │     │     │     │     │     │████ │
+└─────────────────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
+```
+
+### 4.3 移行アーキテクチャ
+
+```
+[既存システム群]
+     ↓ データ抽出
+[ステージング領域]
+     ↓ データ変換・クレンジング
+[移行用データベース]
+     ↓ ServiceNow Import
+[ServiceNow本番環境]
+```
+
+### 4.4 移行環境設計
+
+| 環境 | 用途 | 構成 | データ |
+|------|------|------|--------|
+| 開発環境 | 移行ロジック開発 | 最小構成 | サンプルデータ |
+| テスト環境 | 移行テスト実行 | 本番同等 | 本番データサブセット |
+| ステージング | 本番移行リハーサル | 本番同等 | 本番データフル |
+| 本番環境 | 実際の移行実施 | 本番構成 | 本番データ |
+
+---
+
+## 5. データ変換
+
+### 5.1 変換ルール
+
+{% for rule in data_transformation.transformation_rules %}
+#### {{ rule.rule_type }}
+- **説明**: {{ rule.description }}
+- **適用例**: {{ rule.examples }}
+
+{% endfor %}
+
+### 5.2 マッピング例
+
+{% for mapping in data_transformation.mapping_examples %}
+#### {{ mapping.source_field }} → {{ mapping.target_field }}
+- **移行元値**: {{ mapping.source_values }}
+- **移行先値**: {{ mapping.target_values }}
+- **変換ロジック**: {{ mapping.mapping_logic }}
+
+{% endfor %}
+
+### 5.3 データクレンジングルール
+
+| 対象データ | 問題 | クレンジング方法 | 例 |
+|-----------|------|----------------|-----|
+| ユーザー名 | 重複・表記ゆれ | 名寄せ・統合 | 田中太郎、田中　太郎 → 田中太郎 |
+| 日付フィールド | フォーマット不統一 | 標準形式変換 | 2023/12/31 → 2023-12-31 00:00:00 |
+| 優先度 | 定義不統一 | 標準値マッピング | Urgent → 1-Critical |
+| メールアドレス | 無効・重複 | 検証・除去 | invalid@domain → NULL |
+| CI名 | 命名規則不統一 | 標準化 | Server_01、SERVER01 → SERVER-001 |
+
+### 5.4 変換処理フロー
+
+```
+[ソースデータ] 
+    ↓ 1. 抽出
+[Raw Data] 
+    ↓ 2. クレンジング
+[Cleaned Data] 
+    ↓ 3. 変換
+[Transformed Data] 
+    ↓ 4. 検証
+[Validated Data] 
+    ↓ 5. ロード
+[ServiceNow]
+```
+
+---
+
+## 6. 移行手順
+
+### 6.1 事前準備手順
+
+1. **移行環境確認**
+   - ServiceNow環境アクセス確認
+   - 移行ツール動作確認
+   - ネットワーク接続性確認
+
+2. **データバックアップ**
+   - 移行元システムフルバックアップ
+   - ServiceNow環境バックアップ
+   - バックアップ整合性確認
+
+3. **リハーサル実行**
+   - ステージング環境での完全リハーサル
+   - 実行時間・リソース使用量測定
+   - 問題点の洗い出しと対策
+
+### 6.2 移行実行手順
+
+#### Phase 1: マスターデータ移行
+
+```bash
+# 1. ユーザーマスター移行
+python migrate_users.py --source=AD --target=servicenow --batch-size=1000
+
+# 2. 組織マスター移行  
+python migrate_departments.py --source=hr_system --target=servicenow
+
+# 3. CI分類マスター移行
+python migrate_ci_classes.py --source=cmdb --target=servicenow
+
+# 4. データ検証
+python validate_master_data.py --target=servicenow --report=validation_report.html
+```
+
+#### Phase 2: 履歴データ移行
+
+```bash
+# 1. インシデント履歴移行（バッチ処理）
+python migrate_incidents.py --start-date=2019-01-01 --end-date=2023-12-31 --batch-size=10000
+
+# 2. 変更要求履歴移行
+python migrate_changes.py --start-date=2022-01-01 --end-date=2023-12-31 --batch-size=5000
+
+# 3. CI履歴移行
+python migrate_ci_history.py --active-only=true --batch-size=5000
+
+# 4. 関連データ整合性確認
+python validate_relationships.py --target=servicenow --fix-orphans=true
+```
+
+### 6.3 カットオーバー手順
+
+#### 金曜日 18:00 - カットオーバー開始
+
+```
+18:00-19:00  既存システム停止、最終バックアップ
+19:00-22:00  差分データ移行実行
+22:00-02:00  データ検証・修正
+02:00-06:00  システム統合テスト
+06:00-08:00  ユーザー受入テスト
+08:00-09:00  本番稼働開始
+```
+
+### 6.4 移行後手順
+
+1. **稼働確認（Week 1）**
+   - 基本機能動作確認
+   - データ整合性チェック
+   - 性能監視
+   - ユーザーサポート
+
+2. **安定化期間（Week 2-4）**
+   - 詳細データ検証
+   - 業務プロセス確認
+   - 問題点対応
+   - 改善点適用
+
+---
+
+## 7. データ検証
+
+### 7.1 検証戦略
+
+{% for validation in validation_strategy.validation_types %}
+#### {{ validation.type }}
+- **説明**: {{ validation.description }}
+- **自動化レベル**: {{ validation.automation }}
+- **許容基準**: {{ validation.tolerance }}
+
+{% endfor %}
+
+### 7.2 検証フェーズ
+
+{% for phase in validation_strategy.validation_phases %}
+- {{ phase }}
+{% endfor %}
+
+### 7.3 検証ツール
+
+{% for tool in validation_strategy.validation_tools %}
+- {{ tool }}
+{% endfor %}
+
+### 7.4 検証項目詳細
+
+#### データ件数検証
+```sql
+-- 移行元データ件数
+SELECT COUNT(*) FROM source_system.incidents WHERE created_date >= '2019-01-01';
+
+-- 移行先データ件数  
+SELECT COUNT(*) FROM servicenow.incident WHERE sys_created_on >= '2019-01-01';
+
+-- 件数比較レポート
+SELECT 
+    'Source' as system, COUNT(*) as record_count 
+FROM source_system.incidents 
+UNION ALL
+SELECT 
+    'Target' as system, COUNT(*) as record_count 
+FROM servicenow.incident;
+```
+
+#### データ品質検証
+```javascript
+// ServiceNow Business Rule - データ品質チェック
+(function executeRule(current, previous /*null when async*/) {
+    var quality_check = new QualityCheck();
+    
+    // 必須フィールドチェック
+    if (!current.short_description || current.short_description == '') {
+        gs.error('Short description is required');
+        return false;
+    }
+    
+    // 参照整合性チェック
+    if (current.assigned_to && !current.assigned_to.getRefRecord()) {
+        gs.error('Invalid assigned_to reference');
+        return false;
+    }
+    
+    return true;
+})(current, previous);
+```
+
+### 7.5 検証レポート
+
+| 検証項目 | 期待値 | 実績値 | 結果 | 備考 |
+|----------|--------|--------|------|------|
+| インシデント件数 | 3,000,000 | 2,999,998 | ⚠️ | 2件のフォーマットエラーデータを除外 |
+| ユーザーマスター | 10,000 | 10,000 | ✅ | 完全一致 |
+| CI件数 | 50,000 | 49,995 | ⚠️ | 5件の非アクティブCIを除外 |
+| 参照整合性 | 100% | 99.8% | ⚠️ | 孤児レコード20件を修正済み |
+
+---
+
+## 8. ロールバック計画
+
+### 8.1 ロールバック判定基準
+
+{% for trigger in rollback_plan.rollback_triggers %}
+- {{ trigger }}
+{% endfor %}
+
+### 8.2 ロールバック手順
+
+{% for procedure in rollback_plan.rollback_procedures %}
+#### {{ procedure.step }}
+- **実施内容**: {{ procedure.action }}
+- **所要時間**: {{ procedure.time_required }}
+- **責任者**: {{ procedure.responsible }}
+
+{% endfor %}
+
+### 8.3 バックアップ戦略
+
+- **完全バックアップ**: {{ rollback_plan.backup_strategy.full_backup }}
+- **増分バックアップ**: {{ rollback_plan.backup_strategy.incremental_backup }}
+- **保持期間**: {{ rollback_plan.backup_strategy.retention }}
+
+### 8.4 ロールバック判定プロセス
+
+```
+[問題発生] → [影響度評価] → [対策検討] → [継続/ロールバック判定]
+     ↓              ↓              ↓              ↓
+[即座に対応]    [1時間以内]    [2時間以内]    [4時間以内]
+```
+
+### 8.5 緊急時連絡体制
+
+| 役割 | 担当者 | 連絡先 | エスカレーション条件 |
+|------|--------|--------|---------------------|
+| 移行責任者 | プロジェクトマネージャー | xxx-xxxx | 即座 |
+| 技術責任者 | システムアーキテクト | xxx-xxxx | 技術的問題発生時 |
+| 業務責任者 | 業務部門長 | xxx-xxxx | 業務影響発生時 |
+| 経営層 | CTO | xxx-xxxx | 重大問題発生時 |
+
+---
+
+## 9. リスク管理
+
+### 9.1 リスク評価
+
+{% for risk in risk_assessment %}
+#### {{ risk.risk }}
+- **発生確率**: {{ risk.probability }}
+- **影響度**: {{ risk.impact }}
+- **対策**: {{ risk.mitigation }}
+
+{% endfor %}
+
+### 9.2 リスクマトリクス
+
+```
+影響度＼確率   │ 低    │ 中    │ 高
+─────────────┼───────┼───────┼──────
+高           │ 中    │ 高    │ 最高
+中           │ 低    │ 中    │ 高  
+低           │ 最低  │ 低    │ 中
+```
+
+### 9.3 リスク対応計画
+
+| リスク | 対応戦略 | 具体的対策 | 責任者 |
+|--------|----------|-----------|--------|
+| データ変換エラー | 軽減 | 十分なテスト、段階移行 | 開発チーム |
+| 移行時間超過 | 軽減 | 性能最適化、並列処理 | インフラチーム |
+| システム間連携障害 | 軽減 | 統合テスト、モック準備 | 統合チーム |
+| データ破損・消失 | 転嫁 | 保険加入、バックアップ強化 | 運用チーム |
+
+### 9.4 監視・早期警告
+
+#### 自動監視項目
+- 移行処理進捗率
+- エラー発生率
+- システムリソース使用率
+- データ品質指標
+
+#### アラート設定
+- エラー率5%超過 → イエローアラート
+- エラー率10%超過 → レッドアラート
+- 処理遅延30%超過 → 要注意
+- システムリソース80%超過 → 警告
+
+---
+
+## 10. 運用移行
+
+### 10.1 運用移行計画
+
+#### Go-Live直後（1-2週間）
+- **24時間監視体制**
+- **専任サポート要員配置**
+- **緊急対応プロセス発動**
+- **日次データ品質チェック**
+
+#### 安定化期間（3-4週間）
+- **通常監視体制移行**
+- **週次レビュー会議**
+- **改善点の継続対応**
+- **ナレッジ移転完了**
+
+#### 定常運用（1ヶ月後）
+- **定常運用プロセス確立**
+- **SLA監視開始**
+- **定期メンテナンス実施**
+- **継続改善活動**
+
+### 10.2 サポート体制
+
+| レベル | 対応範囲 | 対応時間 | 担当 |
+|--------|----------|----------|------|
+| L1 | 一般的な問い合わせ | 営業時間内 | ヘルプデスク |
+| L2 | 技術的問題 | 24時間 | システム管理者 |
+| L3 | 高度技術問題 | 緊急時呼出 | 専門エンジニア |
+| L4 | ベンダーサポート | ベンダーSLA | ServiceNow |
+
+### 10.3 性能監視
+
+#### 監視対象
+- **レスポンス時間**: 3秒以内
+- **同時接続数**: 500ユーザー
+- **データ処理量**: 1000件/分
+- **可用性**: 99.9%
+
+#### 監視ツール
+- ServiceNow Performance Analytics
+- APM（Application Performance Monitoring）
+- インフラ監視ツール
+- カスタムダッシュボード
+
+### 10.4 継続改善
+
+#### 改善活動サイクル
+1. **月次レビュー**: KPI確認、課題抽出
+2. **四半期評価**: 目標達成度評価
+3. **年次見直し**: 戦略・目標の見直し
+4. **継続最適化**: プロセス・技術の改善
+
+#### 改善指標
+- ユーザー満足度
+- システム可用性
+- 処理効率
+- コスト削減効果
+
+---
+
+## 付録
+
+### A. 移行ツール詳細
+
+{% for tool in migration_tools %}
+#### {{ tool.tool_name }}
+- **目的**: {{ tool.purpose }}
+- **適用場面**: {{ tool.use_case }}
+- **利点**: {{ tool.advantages }}
+- **制限事項**: {{ tool.limitations }}
+
+{% endfor %}
+
+### B. データマッピング詳細
+
+1. **フィールドマッピング仕様書**
+2. **コード変換テーブル**
+3. **データ変換ルール定義**
+4. **例外処理ルール**
+
+### C. 移行スクリプト
+
+1. **データ抽出スクリプト**
+2. **データ変換スクリプト**
+3. **データ検証スクリプト**
+4. **ロールバックスクリプト**
+
+### D. テストケース
+
+1. **単体移行テスト**
+2. **結合移行テスト**
+3. **性能テスト**
+4. **障害時テスト**
+
+### E. 運用手順書
+
+1. **日次運用チェックリスト**
+2. **障害対応手順書**
+3. **定期メンテナンス手順**
+4. **エスカレーション手順**
+
+### F. 用語集
+
+| 用語 | 定義 |
+|------|------|
+| ETL | Extract, Transform, Load（抽出・変換・格納） |
+| CDC | Change Data Capture（変更データキャプチャ） |
+| DQ | Data Quality（データ品質） |
+| MDM | Master Data Management（マスターデータ管理） |
+| Import Set | ServiceNow標準のデータ取り込み機能 |
+
+### G. 変更履歴
+
+| バージョン | 日付 | 変更内容 | 変更者 |
+|------------|------|----------|--------|
+| {{ version }} | {{ created_date | date_format }} | 初版作成 | {{ author.name }} |
