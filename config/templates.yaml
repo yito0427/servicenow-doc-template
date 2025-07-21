@@ -1,0 +1,386 @@
+# ServiceNow Document Template Configuration
+# テンプレート設定とデフォルト値の定義
+
+# アプリケーション設定
+application:
+  name: "ServiceNow Document Template Generator"
+  version: "1.0.0"
+  description: "ServiceNowデリバリプロジェクトに必要な設計書を簡単に生成"
+
+# テンプレート設定
+templates:
+  # インシデント管理設計書
+  incident_management:
+    name: "インシデント管理設計書"
+    description: "ServiceNowインシデント管理プロセスの設計書テンプレート"
+    template_file: "incident_management.md"
+    sections:
+      - "概要"
+      - "インシデント分類"
+      - "優先度設定"
+      - "エスカレーション手順"
+      - "SLA設定"
+      - "レポート設計"
+    required_fields:
+      - "project_name"
+      - "author"
+      - "client"
+    default_values:
+      incident_types:
+        - "システム障害"
+        - "パフォーマンス問題"
+        - "ユーザーサポート"
+        - "セキュリティインシデント"
+      priority_levels:
+        - "重要"
+        - "高"
+        - "中"
+        - "低"
+      escalation_rules: "30分以内に上位者へエスカレーション"
+      sla_targets:
+        critical: "4時間"
+        high: "8時間"
+        medium: "24時間"
+        low: "72時間"
+
+  # 問題管理設計書
+  problem_management:
+    name: "問題管理設計書"
+    description: "ServiceNow問題管理プロセスの設計書テンプレート"
+    template_file: "problem_management.md"
+    sections:
+      - "概要"
+      - "問題分析手法"
+      - "根本原因分析"
+      - "既知エラー管理"
+      - "回避策管理"
+    required_fields:
+      - "project_name"
+      - "author"
+      - "client"
+    default_values:
+      problem_categories:
+        - "インフラ"
+        - "アプリケーション"
+        - "プロセス"
+        - "人的要因"
+      root_cause_methods:
+        - "5Why分析"
+        - "魚骨図"
+        - "障害ツリー分析"
+        - "タイムライン分析"
+      analysis_tools:
+        - "ServiceNow Problem Management"
+        - "Knowledge Base"
+        - "Configuration Management Database"
+
+  # 変更管理設計書
+  change_management:
+    name: "変更管理設計書"
+    description: "ServiceNow変更管理プロセスの設計書テンプレート"
+    template_file: "change_management.md"
+    sections:
+      - "概要"
+      - "変更タイプ"
+      - "承認プロセス"
+      - "リスク評価"
+      - "ロールバック手順"
+    required_fields:
+      - "project_name"
+      - "author"
+      - "client"
+    default_values:
+      change_types:
+        - "標準変更"
+        - "通常変更"
+        - "緊急変更"
+        - "重要変更"
+      approval_process: "CAB承認 → 実装 → レビュー"
+      rollback_procedures: "自動ロールバック機能有効"
+      risk_categories:
+        - "高"
+        - "中"
+        - "低"
+
+  # サービスカタログ設計書
+  service_catalog:
+    name: "サービスカタログ設計書"
+    description: "ServiceNowサービスカタログの設計書テンプレート"
+    template_file: "service_catalog.md"
+    sections:
+      - "概要"
+      - "カタログ構成"
+      - "承認ワークフロー"
+      - "自動化設定"
+      - "レポート設計"
+    required_fields:
+      - "project_name"
+      - "author"
+      - "client"
+    default_values:
+      catalog_categories:
+        - "ITサービス"
+        - "設備サービス"
+        - "人事サービス"
+        - "財務サービス"
+      approval_workflow: "申請 → 承認 → 実行 → 完了通知"
+      automation_features:
+        - "自動承認"
+        - "通知機能"
+        - "進捗追跡"
+
+  # テスト設計書
+  test_design:
+    name: "テスト設計書"
+    description: "ServiceNowシステムのテスト設計書テンプレート"
+    template_file: "test_design.md"
+    sections:
+      - "概要"
+      - "テスト戦略"
+      - "テストケース"
+      - "実行計画"
+      - "品質基準"
+    required_fields:
+      - "project_name"
+      - "author"
+      - "client"
+    default_values:
+      test_types:
+        - "単体テスト"
+        - "結合テスト"
+        - "システムテスト"
+        - "ユーザー受入テスト"
+      test_environments:
+        - "開発環境"
+        - "テスト環境"
+        - "ステージング環境"
+
+  # SLM設計書
+  slm_design:
+    name: "SLM設計書"
+    description: "Service Level Management（サービスレベル管理）の設計書テンプレート"
+    template_file: "slm_design.j2"
+    sections:
+      - "概要"
+      - "SLM基本方針"
+      - "サービスレベル定義"
+      - "SLA設計"
+      - "OLA設計"
+      - "UC設計"
+      - "測定・監視設計"
+      - "レポート設計"
+      - "改善プロセス"
+      - "他プロセスとの連携"
+    required_fields:
+      - "project_name"
+      - "author"
+      - "client"
+    default_values:
+      service_categories:
+        - "基幹業務システム"
+        - "オフィス系システム"
+        - "インフラサービス"
+        - "セキュリティサービス"
+      measurement_metrics:
+        - name: "可用性"
+          definition: "システムが正常に稼働している時間の割合"
+          formula: "(稼働時間 / 総時間) × 100"
+          data_source: "監視システム"
+          frequency: "リアルタイム"
+        - name: "応答時間"
+          definition: "ユーザーリクエストから応答までの時間"
+          formula: "平均応答時間（ms）"
+          data_source: "APMツール"
+          frequency: "リアルタイム"
+        - name: "顧客満足度"
+          definition: "サービスに対する顧客の満足度評価"
+          formula: "満足度アンケート結果の平均値"
+          data_source: "顧客アンケート"
+          frequency: "月次"
+      reporting_frequency:
+        daily: "日次運用レポート"
+        weekly: "週次ダッシュボード"
+        monthly: "月次SLAレポート"
+        quarterly: "四半期レビュー"
+      review_cycles:
+        - name: "日次運用レビュー"
+          frequency: "毎日"
+          participants: "運用チーム"
+          agenda: "前日の障害・インシデント確認"
+          deliverables: "日次レポート"
+        - name: "週次サービスレビュー"
+          frequency: "毎週"
+          participants: "サービスオーナー、運用チーム"
+          agenda: "SLA達成状況、改善アクション進捗"
+          deliverables: "週次ダッシュボード"
+        - name: "月次SLAレビュー"
+          frequency: "毎月"
+          participants: "顧客、サービスプロバイダー"
+          agenda: "月次SLA結果、改善計画"
+          deliverables: "月次SLAレポート"
+
+  # ナレッジ管理設計書
+  knowledge_management:
+    name: "ナレッジ管理設計書"
+    description: "ServiceNowナレッジ管理の設計書テンプレート"
+    template_file: "knowledge_management.j2"
+    sections:
+      - "概要"
+      - "ナレッジ管理基本方針"
+      - "ナレッジベース設計"
+      - "ナレッジ分類・タクソノミー"
+      - "ナレッジライフサイクル"
+      - "品質管理・承認プロセス"
+      - "検索・活用設計"
+      - "パフォーマンス・分析設計"
+      - "セキュリティ・アクセス制御"
+      - "他プロセスとの連携"
+    required_fields:
+      - "project_name"
+      - "author"
+      - "client"
+    default_values:
+      knowledge_types:
+        - name: "How-to記事"
+          description: "具体的な作業手順を説明する記事"
+          format: "ステップバイステップ形式"
+          usage: "作業手順の標準化"
+        - name: "トラブルシューティングガイド"
+          description: "問題の特定と解決方法を説明"
+          format: "問題-原因-対策形式"
+          usage: "障害対応の効率化"
+        - name: "FAQ"
+          description: "よくある質問と回答"
+          format: "Q&A形式"
+          usage: "問い合わせ削減"
+        - name: "ベストプラクティス"
+          description: "推奨される作業方法や設定"
+          format: "事例紹介形式"
+          usage: "品質向上・標準化"
+      content_categories:
+        - name: "基本操作"
+          description: "システムの基本的な操作方法"
+          audience: "全ユーザー"
+          update_frequency: "四半期毎"
+          owner: "システム管理者"
+        - name: "トラブルシューティング"
+          description: "一般的な問題の解決方法"
+          audience: "サポート担当者"
+          update_frequency: "月次"
+          owner: "テクニカルサポート"
+        - name: "管理者向け"
+          description: "システム管理・設定に関する情報"
+          audience: "システム管理者"
+          update_frequency: "随時"
+          owner: "システム管理者"
+      approval_workflows:
+        - name: "標準承認ワークフロー"
+          target: "一般的なナレッジ記事"
+          steps: "作成者確認 → ピアレビュー → 管理者承認"
+          duration: "3-5営業日"
+          notes: "技術的内容の確認を重視"
+        - name: "緊急承認ワークフロー"
+          target: "緊急性の高いナレッジ"
+          steps: "作成者確認 → 管理者承認"
+          duration: "1営業日"
+          notes: "事後詳細レビューを実施"
+        - name: "専門承認ワークフロー"
+          target: "高度な技術内容"
+          steps: "作成者確認 → 専門家レビュー → 管理者承認"
+          duration: "5-7営業日"
+          notes: "専門性の高い内容の品質確保"
+      quality_metrics:
+        - name: "ナレッジ活用率"
+          definition: "作成されたナレッジが実際に活用されている割合"
+          formula: "活用されたナレッジ数 / 総ナレッジ数 × 100"
+          target: "80%以上"
+          frequency: "月次"
+        - name: "検索成功率"
+          definition: "検索で適切なナレッジが見つかる割合"
+          formula: "成功検索数 / 総検索数 × 100"
+          target: "90%以上"
+          frequency: "週次"
+        - name: "ナレッジ品質スコア"
+          definition: "ユーザー評価に基づく品質指標"
+          formula: "5段階評価の加重平均"
+          target: "4.0以上"
+          frequency: "月次"
+        - name: "更新適時性"
+          definition: "ナレッジが適切なタイミングで更新されている割合"
+          formula: "期限内更新数 / 更新対象数 × 100"
+          target: "95%以上"
+          frequency: "月次"
+      search_features:
+        - name: "全文検索"
+          description: "タイトル・本文・タグを対象とした全文検索"
+          implementation: "Elasticsearch"
+          search_fields: ["title", "body", "tags"]
+          features: ["部分一致", "あいまい検索", "シノニム検索"]
+        - name: "ファセット検索"
+          description: "カテゴリ・タグによる絞り込み検索"
+          implementation: "ServiceNow標準機能"
+          search_fields: ["category", "subcategory", "tags"]
+          features: ["複数選択", "階層絞り込み", "候補数表示"]
+        - name: "セマンティック検索"
+          description: "意味的類似性に基づく検索"
+          implementation: "AI/ML機能"
+          search_fields: ["content_vector"]
+          features: ["関連記事提案", "自動タグ付け", "類似度スコア"]
+      analytics_reports:
+        - name: "ナレッジ利用状況レポート"
+          purpose: "ナレッジの活用状況を把握"
+          audience: "ナレッジマネージャー"
+          frequency: "月次"
+          metrics: ["閲覧数", "検索ヒット数", "評価スコア"]
+          delivery_method: "メール + ダッシュボード"
+        - name: "コンテンツ品質レポート"
+          purpose: "ナレッジの品質状況を監視"
+          audience: "コンテンツオーナー"
+          frequency: "週次"
+          metrics: ["レビュー待ち数", "低評価記事数", "更新期限切れ数"]
+          delivery_method: "ダッシュボード"
+        - name: "検索分析レポート"
+          purpose: "検索パターンとギャップを分析"
+          audience: "システム管理者"
+          frequency: "月次"
+          metrics: ["検索キーワード", "結果なし検索", "検索成功率"]
+          delivery_method: "レポート + 分析資料"
+
+# デフォルト設定
+defaults:
+  author:
+    name: "プロジェクトマネージャー"
+    email: "pm@example.com"
+    role: "システムアナリスト"
+  client:
+    name: "お客様会社名"
+    department: "情報システム部"
+  project:
+    phase: "設計フェーズ"
+    methodology: "Agile"
+  document:
+    version: "1.0"
+    language: "ja"
+    format: "markdown"
+
+# エクスポート設定
+export:
+  formats:
+    - "md"
+    - "pdf"
+    - "docx"
+    - "txt"
+  pdf:
+    page_size: "A4"
+    margin: "20mm"
+    font_family: "Noto Sans CJK JP"
+  word:
+    template_style: "Standard"
+    font_size: "11pt"
+
+# ウェブインターフェース設定
+web:
+  title: "ServiceNow Document Generator"
+  theme: "bootstrap"
+  items_per_page: 10
+  max_upload_size: "10MB"

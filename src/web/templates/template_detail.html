@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %}{{ template.name }} - テンプレート詳細{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">ホーム</a></li>
+                <li class="breadcrumb-item active">{{ template.name }}</li>
+            </ol>
+        </nav>
+
+        <!-- Template Header -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h4 class="mb-0">
+                            <i class="fas fa-file-text me-2"></i>
+                            {{ template.name }}
+                        </h4>
+                        {% if template.description %}
+                        <small>{{ template.description }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-light btn-sm" onclick="generateFromTemplate()">
+                            <i class="fas fa-plus me-1"></i>
+                            このテンプレートで生成
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Template Sections -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list-ol me-2"></i>
+                            ドキュメント構成 ({{ template.sections|length }}セクション)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            {% for section in template.sections %}
+                            <div class="list-group-item d-flex align-items-center">
+                                <span class="badge bg-primary rounded-pill me-3">{{ loop.index }}</span>
+                                <span>{{ section }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-eye me-2"></i>
+                            サンプルプレビュー
+                        </h5>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="loadPreview()">
+                            <i class="fas fa-refresh me-1"></i>
+                            プレビュー読み込み
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="preview-loading" class="text-center py-4" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">プレビューを読み込み中...</p>
+                        </div>
+                        <div id="preview-content" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted">プレビュー内容</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="downloadSample()">
+                                    <i class="fas fa-download me-1"></i>
+                                    サンプルダウンロード
+                                </button>
+                            </div>
+                            <pre id="preview-text" class="bg-light p-3" style="max-height: 500px; overflow-y: auto; font-size: 0.875rem;"></pre>
+                        </div>
+                        <div id="preview-placeholder" class="text-center py-5 text-muted">
+                            <i class="fas fa-file-alt mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <p>「プレビュー読み込み」ボタンをクリックしてサンプルを表示</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Quick Generate -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-rocket me-2"></i>
+                            クイック生成
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="quickGenerateForm">
+                            <div class="mb-3">
+                                <label class="form-label">プロジェクト名</label>
+                                <input type="text" class="form-control form-control-sm" id="quick_project_name" 
+                                       placeholder="プロジェクト名" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">作成者名</label>
+                                <input type="text" class="form-control form-control-sm" id="quick_author_name" 
+                                       placeholder="作成者名" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">メールアドレス</label>
+                                <input type="email" class="form-control form-control-sm" id="quick_author_email" 
+                                       placeholder="email@example.com" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-file-export me-1"></i>
+                                    生成
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Template Info -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            テンプレート情報
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-5">セクション数:</dt>
+                            <dd class="col-7">{{ template.sections|length }}</dd>
+                            
+                            <dt class="col-5">必須フィールド:</dt>
+                            <dd class="col-7">{{ template.required_fields|length }}</dd>
+                            
+                            <dt class="col-5">形式:</dt>
+                            <dd class="col-7">Markdown</dd>
+                            
+                            <dt class="col-5">用途:</dt>
+                            <dd class="col-7">ServiceNowデリバリ文書</dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <!-- Required Fields -->
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-asterisk me-2"></i>
+                            必須フィールド
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if template.required_fields %}
+                        <ul class="list-unstyled mb-0">
+                            {% for field in template.required_fields %}
+                            <li class="mb-1">
+                                <i class="fas fa-check text-success me-2"></i>
+                                <code>{{ field }}</code>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted mb-0">基本フィールドのみ</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="generateModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>ドキュメントを生成中...</h5>
+                <p class="text-muted mb-0">しばらくお待ちください</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPreviewData = null;
+const documentType = "{{ document_type }}";
+
+// Load preview
+async function loadPreview() {
+    document.getElementById('preview-placeholder').style.display = 'none';
+    document.getElementById('preview-content').style.display = 'none';
+    document.getElementById('preview-loading').style.display = 'block';
+
+    try {
+        const response = await fetch(`/api/templates/${encodeURIComponent(documentType)}/preview`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            currentPreviewData = data;
+            document.getElementById('preview-text').textContent = data.content;
+            document.getElementById('preview-loading').style.display = 'none';
+            document.getElementById('preview-content').style.display = 'block';
+        } else {
+            throw new Error(data.detail);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('preview-loading').style.display = 'none';
+        document.getElementById('preview-placeholder').style.display = 'block';
+        document.getElementById('preview-placeholder').innerHTML = 
+            '<i class="fas fa-exclamation-triangle text-danger mb-3" style="font-size: 3rem;"></i>' +
+            '<p class="text-danger">プレビューの読み込みに失敗しました</p>';
+    }
+}
+
+// Download sample
+function downloadSample() {
+    if (!currentPreviewData) {
+        alert('プレビューデータがありません');
+        return;
+    }
+    
+    const blob = new Blob([currentPreviewData.content], { type: 'text/markdown' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = currentPreviewData.filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+// Generate from template
+function generateFromTemplate() {
+    document.getElementById('quick_project_name').focus();
+}
+
+// Quick generate form submission
+document.getElementById('quickGenerateForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const modal = new bootstrap.Modal(document.getElementById('generateModal'));
+    modal.show();
+
+    const formData = {
+        document_type: documentType,
+        project_name: document.getElementById('quick_project_name').value,
+        author_name: document.getElementById('quick_author_name').value,
+        author_email: document.getElementById('quick_author_email').value,
+        additional_data: {}
+    };
+
+    try {
+        const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        modal.hide();
+
+        if (response.ok) {
+            // Redirect to success page with URL parameters
+            const params = new URLSearchParams({
+                filename: data.filename,
+                document_type: documentType,
+                project_name: formData.project_name
+            });
+            window.location.href = '/success?' + params.toString();
+        } else {
+            alert('エラー: ' + data.detail);
+        }
+    } catch (error) {
+        modal.hide();
+        console.error('Error:', error);
+        alert('ドキュメント生成中にエラーが発生しました');
+    }
+});
+</script>
+{% endblock %}

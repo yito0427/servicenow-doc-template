@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}エラー - ServiceNow Document Generator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    エラーが発生しました
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-exclamation-circle text-danger" style="font-size: 4rem;"></i>
+                </div>
+                
+                <h4 class="text-danger mb-3">ドキュメント生成に失敗しました</h4>
+                
+                <div class="alert alert-danger" role="alert">
+                    <strong>エラー詳細:</strong><br>
+                    {{ error }}
+                </div>
+                
+                {% if document_type %}
+                <div class="bg-light p-3 rounded mb-4">
+                    <div class="row">
+                        <div class="col-sm-4 text-muted">ドキュメントタイプ:</div>
+                        <div class="col-sm-8"><strong>{{ document_type }}</strong></div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="/" class="btn btn-primary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        戻って再試行
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary btn-lg" onclick="copyError()">
+                        <i class="fas fa-copy me-2"></i>
+                        エラーをコピー
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Troubleshooting -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-tools me-2"></i>
+                    トラブルシューティング
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6>よくある問題と対処法:</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        すべての必須項目が入力されているか確認してください
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        プロジェクト名に特殊文字が含まれていないか確認してください
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        メールアドレスが正しい形式で入力されているか確認してください
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-check text-success me-2"></i>
+                        問題が続く場合は、ページを更新して再試行してください
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyError() {
+    const errorText = "{{ error }}";
+    navigator.clipboard.writeText(errorText).then(function() {
+        alert('エラー内容をクリップボードにコピーしました');
+    });
+}
+</script>
+{% endblock %}

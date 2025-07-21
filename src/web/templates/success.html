@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}生成完了 - ServiceNow Document Generator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-check-circle me-2"></i>
+                    ドキュメント生成完了
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-file-alt text-success" style="font-size: 4rem;"></i>
+                </div>
+                
+                <h4 class="text-success mb-3">生成が完了しました！</h4>
+                
+                <div class="bg-light p-3 rounded mb-4">
+                    <div class="row">
+                        <div class="col-sm-4 text-muted">ドキュメントタイプ:</div>
+                        <div class="col-sm-8"><strong>{{ document_type }}</strong></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4 text-muted">プロジェクト名:</div>
+                        <div class="col-sm-8"><strong>{{ project_name }}</strong></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4 text-muted">ファイル名:</div>
+                        <div class="col-sm-8"><code>{{ filename }}</code></div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mb-3">
+                    <a href="/api/download/{{ filename }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-download me-2"></i>
+                        Markdown ダウンロード
+                    </a>
+                    <a href="/" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-home me-2"></i>
+                        ホームに戻る
+                    </a>
+                </div>
+                
+                <!-- Export Options -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6 class="text-muted mb-2">他の形式でエクスポート:</h6>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportDocument('pdf')">
+                                <i class="fas fa-file-pdf me-1"></i>
+                                PDF
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportDocument('docx')">
+                                <i class="fas fa-file-word me-1"></i>
+                                Word
+                            </button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportDocument('txt')">
+                                <i class="fas fa-file-alt me-1"></i>
+                                テキスト
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        ファイルは Markdown 形式で生成されています。お好みのエディタで編集してください。
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Next Steps -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    次のステップ
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-edit text-primary me-2"></i>
+                        生成されたドキュメントをプロジェクトに合わせてカスタマイズ
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-users text-primary me-2"></i>
+                        ステークホルダーとの内容レビュー・承認
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-file-pdf text-primary me-2"></i>
+                        PDF形式での最終文書化（Word/PDF変換）
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-folder text-primary me-2"></i>
+                        プロジェクト文書管理システムへの格納
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function exportDocument(format) {
+    const filename = "{{ filename }}";
+    const button = event.target;
+    
+    // Show loading state
+    const originalText = button.innerHTML;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>変換中...';
+    button.disabled = true;
+    
+    try {
+        const response = await fetch(`/api/export/${encodeURIComponent(filename)}?format=${format}`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            // Create download link
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `{{ filename | replace('.md', '') }}.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } else {
+            const error = await response.json();
+            alert('エクスポートに失敗しました: ' + (error.detail || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('エクスポート中にエラーが発生しました');
+    } finally {
+        // Restore button state
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+</script>
+{% endblock %}

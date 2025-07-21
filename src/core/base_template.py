@@ -7,6 +7,8 @@ from jinja2 import Environment, FileSystemLoader, Template
 from pydantic import BaseModel
 
 from src.models.document import Document, DocumentType
+from src.config.settings import get_settings
+from src.validators.validation_manager import ValidationManager, ValidationMode
 
 
 class TemplateConfig(BaseModel):
@@ -62,16 +64,45 @@ class BaseDocumentTemplate(ABC):
         """テンプレート用のコンテキストデータを準備"""
         pass
     
-    def validate_data(self, data: Dict[str, Any]) -> None:
+    def validate_data(self, data: Dict[str, Any], strict: bool = True) -> None:
         """入力データの検証"""
+        # 基本的な必須フィールドチェック（後方互換性のため保持）
         required_fields = self.get_required_fields()
         for field in required_fields:
             if field not in data:
                 raise ValueError(f"必須フィールド '{field}' が見つかりません")
+        
+        # 高度なバリデーション
+        validation_mode = ValidationMode.STRICT if strict else ValidationMode.PERMISSIVE
+        validator_manager = ValidationManager(validation_mode)
+        
+        try:
+            validation_report = validator_manager.validate_document(
+                self.get_document_type(), data
+            )
+            
+            # バリデーション結果をログに記録（将来的な拡張用）
+            self._validation_report = validation_report
+            
+            # エラーがある場合は例外を発生
+            if strict and not validation_report.is_valid:
+                error_messages = [
+                    result.message for result in validation_report.results 
+                    if result.level.value == "error"
+                ]
+                raise ValueError(f"バリデーションエラー: {'; '.join(error_messages)}")
+                
+        except Exception as e:
+            if strict:
+                raise
+            # 非strictモードではバリデーションエラーをログに記録して続行
+            print(f"バリデーション警告: {e}")
     
     def get_required_fields(self) -> list:
         """必須フィールドのリストを返す"""
-        return ["project_name", "author", "version"]
+        settings = get_settings()
+        doc_type = self.get_document_type()
+        return settings.get_required_fields(doc_type.value)
     
     def render(self, data: Dict[str, Any]) -> str:
         """テンプレートをレンダリング"""
@@ -108,4 +139,28 @@ class BaseDocumentTemplate(ABC):
     
     def get_sections(self) -> list:
         """ドキュメントのセクション構成を返す"""
-        return ["概要", "詳細設計", "実装方針", "テスト計画", "リスク管理"]
+        settings = get_settings()
+        doc_type = self.get_document_type()
+        return settings.get_template_sections(doc_type.value)
+    
+    def get_default_values(self) -> Dict[str, Any]:
+        """テンプレートのデフォルト値を取得"""
+        settings = get_settings()
+        doc_type = self.get_document_type()
+        return settings.get_default_values(doc_type.value)
+    
+    def get_validation_report(self):
+        """最後のバリデーション結果を取得"""
+        return getattr(self, '_validation_report', None)
+    
+    def validate_and_get_report(self, data: Dict[str, Any]) -> 'ValidationReport':
+        """データをバリデーションしてレポートを返す"""
+        from src.validators.validation_manager import ValidationManager, ValidationMode
+        
+        validator_manager = ValidationManager(ValidationMode.PERMISSIVE)
+        validation_report = validator_manager.validate_document(
+            self.get_document_type(), data
+        )
+        
+        self._validation_report = validation_report
+        return validation_report

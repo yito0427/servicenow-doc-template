@@ -14,6 +14,8 @@ from src.templates.service_catalog import ServiceCatalogTemplate
 from src.templates.test_design import TestDesignTemplate
 from src.templates.data_migration import DataMigrationTemplate
 from src.templates.operation_design import OperationDesignTemplate
+from src.templates.slm_design import SLMDesignTemplate
+from src.templates.knowledge_management import KnowledgeManagementTemplate
 
 
 class DocumentGenerator:
@@ -31,6 +33,8 @@ class DocumentGenerator:
         DocumentType.TEST_DESIGN: TestDesignTemplate,
         DocumentType.DATA_MIGRATION: DataMigrationTemplate,
         DocumentType.OPERATION_DESIGN: OperationDesignTemplate,
+        DocumentType.SLM_DESIGN: SLMDesignTemplate,
+        DocumentType.KNOWLEDGE_MANAGEMENT: KnowledgeManagementTemplate,
     }
     
     def __init__(self, output_dir: Optional[Path] = None):

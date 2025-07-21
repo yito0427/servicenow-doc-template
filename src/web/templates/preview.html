@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}テンプレートプレビュー - ServiceNow Document Generator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-3">
+        <!-- Template Selection Sidebar -->
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    テンプレート一覧
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for template in templates %}
+                    <a href="/preview/{{ template.value }}" 
+                       class="list-group-item list-group-item-action {% if current_template == template.value %}active{% endif %}">
+                        <i class="fas fa-file-alt me-2"></i>
+                        {{ template.value }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Generate Button -->
+        <div class="card shadow-sm mt-3">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-3">このテンプレートを使用</h6>
+                <a href="/?template={{ current_template }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-2"></i>
+                    生成フォームへ
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-9">
+        {% if template_info %}
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-eye me-2"></i>
+                        {{ template_info.name }} プレビュー
+                    </h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" onclick="togglePreviewMode('rendered')" id="btn-rendered">
+                            <i class="fas fa-eye me-1"></i>
+                            レンダリング表示
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="togglePreviewMode('source')" id="btn-source">
+                            <i class="fas fa-code me-1"></i>
+                            ソース表示
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Template Description -->
+                {% if template_info.description %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ template_info.description }}
+                </div>
+                {% endif %}
+                
+                <!-- Template Details -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">必須フィールド</h6>
+                        <ul class="list-unstyled">
+                            {% for field in template_info.required_fields %}
+                            <li>
+                                <i class="fas fa-check text-success me-1"></i>
+                                <code>{{ field }}</code>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">セクション構成</h6>
+                        <ul class="list-unstyled">
+                            {% for section in template_info.sections %}
+                            <li>
+                                <i class="fas fa-folder text-primary me-1"></i>
+                                {{ section }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Preview Content -->
+                <div class="border rounded p-3" style="background-color: #f8f9fa;">
+                    <!-- Rendered Preview -->
+                    <div id="preview-rendered" class="preview-content" style="display: block;">
+                        <div class="markdown-content">
+                            {{ preview_content | safe }}
+                        </div>
+                    </div>
+                    
+                    <!-- Source Preview -->
+                    <div id="preview-source" class="preview-content" style="display: none;">
+                        <pre class="bg-dark text-light p-3 rounded"><code>{{ source_content }}</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-lightbulb me-1"></i>
+                        これはサンプルデータを使用したプレビューです
+                    </small>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary" onclick="copyToClipboard()">
+                            <i class="fas fa-copy me-1"></i>
+                            コピー
+                        </button>
+                        <a href="/api/download/sample_{{ current_template }}.md" class="btn btn-outline-success">
+                            <i class="fas fa-download me-1"></i>
+                            ダウンロード
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-file-alt text-muted" style="font-size: 4rem;"></i>
+                <h4 class="text-muted mt-3">テンプレートを選択してください</h4>
+                <p class="text-muted">左側のリストからテンプレートを選択すると、プレビューが表示されます。</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.markdown-content {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+    color: #0066cc;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-content h1 {
+    border-bottom: 2px solid #0066cc;
+    padding-bottom: 0.3em;
+}
+
+.markdown-content h2 {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.2em;
+}
+
+.markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+}
+
+.markdown-content th,
+.markdown-content td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.markdown-content th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+.markdown-content code {
+    background-color: #f4f4f4;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+.markdown-content pre {
+    background-color: #f4f4f4;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+}
+
+.markdown-content ul, .markdown-content ol {
+    margin: 10px 0;
+    padding-left: 30px;
+}
+
+.markdown-content li {
+    margin: 5px 0;
+}
+</style>
+
+<script>
+function togglePreviewMode(mode) {
+    const renderedDiv = document.getElementById('preview-rendered');
+    const sourceDiv = document.getElementById('preview-source');
+    const renderedBtn = document.getElementById('btn-rendered');
+    const sourceBtn = document.getElementById('btn-source');
+    
+    if (mode === 'rendered') {
+        renderedDiv.style.display = 'block';
+        sourceDiv.style.display = 'none';
+        renderedBtn.classList.add('active');
+        sourceBtn.classList.remove('active');
+    } else {
+        renderedDiv.style.display = 'none';
+        sourceDiv.style.display = 'block';
+        renderedBtn.classList.remove('active');
+        sourceBtn.classList.add('active');
+    }
+}
+
+function copyToClipboard() {
+    const sourceContent = `{{ source_content | safe }}`;
+    navigator.clipboard.writeText(sourceContent).then(() => {
+        // Show success feedback
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>コピー済み';
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-outline-primary');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-primary');
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        alert('クリップボードへのコピーに失敗しました');
+    });
+}
+
+// Initialize preview mode
+document.addEventListener('DOMContentLoaded', function() {
+    togglePreviewMode('rendered');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,481 @@
+# {{ project_name }}
+# ナレッジ管理設計書
+
+---
+
+**文書情報**
+- **プロジェクト名**: {{ project_name }}
+- **文書バージョン**: {{ version }}
+- **作成日**: {{ created_date.strftime('%Y年%m月%d日') }}
+- **作成者**: {{ author.name }} ({{ author.email }})
+
+---
+
+## 1. 概要
+
+### 1.1 目的
+{{ km_overview.purpose }}
+
+### 1.2 適用範囲
+{{ km_overview.scope }}
+
+### 1.3 目標
+{% for objective in km_overview.objectives %}
+- {{ objective }}
+{% endfor %}
+
+### 1.4 期待効果
+{% for benefit in km_overview.benefits %}
+- {{ benefit }}
+{% endfor %}
+
+### 1.5 成功要因
+{% for factor in km_overview.success_factors %}
+- {{ factor }}
+{% endfor %}
+
+---
+
+## 2. ナレッジ管理基本方針
+
+### 2.1 基本原則
+
+1. **価値重視**: 実際の業務に役立つナレッジを優先的に蓄積
+2. **品質第一**: 正確で信頼性の高い情報のみを公開
+3. **利便性**: 必要な時に素早くアクセスできる仕組み
+4. **継続性**: 持続可能なナレッジ管理プロセスの確立
+5. **協働**: 組織全体でのナレッジ共有文化の醸成
+
+### 2.2 ナレッジ管理組織
+
+| 役割 | 責任 |
+|------|------|
+| ナレッジマネージャー | ナレッジ管理全体の統括、戦略策定 |
+| コンテンツオーナー | 専門分野のナレッジ品質管理 |
+| ナレッジ作成者 | ナレッジの作成・更新 |
+| レビューア | ナレッジの品質確認・承認 |
+| エンドユーザー | ナレッジの活用・フィードバック |
+
+### 2.3 ナレッジタイプ
+
+{% for knowledge_type in knowledge_types %}
+#### 2.3.{{ loop.index }} {{ knowledge_type.name }}
+- **説明**: {{ knowledge_type.description }}
+- **形式**: {{ knowledge_type.format }}
+- **用途**: {{ knowledge_type.usage }}
+{% endfor %}
+
+---
+
+## 3. ナレッジベース設計
+
+### 3.1 アーキテクチャ
+
+#### 3.1.1 プラットフォーム
+{{ knowledge_base_design.architecture.platform }}
+
+#### 3.1.2 ナレッジベース構成
+
+{% for kb in knowledge_base_design.architecture.knowledge_bases %}
+**{{ kb.name }}**
+- 目的: {{ kb.purpose }}
+{% endfor %}
+
+#### 3.1.3 コンテンツタイプ
+
+{% for content_type in knowledge_base_design.architecture.content_types %}
+- {{ content_type }}
+{% endfor %}
+
+### 3.2 ストレージ設計
+
+| 項目 | 内容 |
+|------|------|
+| プライマリストレージ | {{ knowledge_base_design.storage_structure.primary_storage }} |
+| バックアップストレージ | {{ knowledge_base_design.storage_structure.backup_storage }} |
+| バージョン管理 | {{ knowledge_base_design.storage_structure.versioning }} |
+| 保持ポリシー | {{ knowledge_base_design.storage_structure.retention_policy }} |
+
+### 3.3 アクセスチャネル
+
+{% for channel in knowledge_base_design.access_channels %}
+- {{ channel }}
+{% endfor %}
+
+---
+
+## 4. ナレッジ分類・タクソノミー
+
+### 4.1 分類体系
+
+{% for taxonomy in taxonomy_design %}
+#### 4.1.{{ loop.index }} {{ taxonomy.category }}
+
+**サブカテゴリ:**
+{% for subcategory in taxonomy.subcategories %}
+- {{ subcategory }}
+{% endfor %}
+
+**タグ:**
+{% for tag in taxonomy.tags %}
+- `{{ tag }}`
+{% endfor %}
+
+{% endfor %}
+
+### 4.2 コンテンツカテゴリ
+
+{% for category in content_categories %}
+#### 4.2.{{ loop.index }} {{ category.name }}
+
+| 項目 | 内容 |
+|------|------|
+| 説明 | {{ category.description }} |
+| 対象者 | {{ category.audience }} |
+| 更新頻度 | {{ category.update_frequency }} |
+| 責任者 | {{ category.owner }} |
+
+{% endfor %}
+
+### 4.3 メタデータ設計
+
+| フィールド | 必須 | 説明 | 例 |
+|------------|------|------|-----|
+| タイトル | ✓ | ナレッジのタイトル | "VPN接続トラブルシューティング" |
+| カテゴリ | ✓ | 主分類 | "ネットワーク" |
+| サブカテゴリ | ✓ | 副分類 | "VPN" |
+| タグ | - | 検索用キーワード | "troubleshooting", "vpn", "network" |
+| 作成者 | ✓ | コンテンツ作成者 | "山田太郎" |
+| 承認者 | ✓ | 最終承認者 | "田中花子" |
+| 有効期限 | - | コンテンツの有効期限 | "2024-12-31" |
+| 対象者 | - | 想定読者 | "L1サポート", "エンドユーザー" |
+
+---
+
+## 5. ナレッジライフサイクル
+
+### 5.1 ライフサイクル概要
+
+```
+作成 → レビュー・承認 → 公開・活用 → 更新・保守 → 廃止・アーカイブ
+```
+
+### 5.2 各ステージの詳細
+
+{% for stage in lifecycle_design.stages %}
+#### 5.2.{{ loop.index }} {{ stage.stage }}
+
+**説明**: {{ stage.description }}
+
+**主要活動**:
+{% for activity in stage.activities %}
+- {{ activity }}
+{% endfor %}
+
+**担当者**: {{ stage.roles | join(', ') }}
+**所要時間**: {{ stage.duration }}
+
+---
+{% endfor %}
+
+### 5.3 レビュースケジュール
+
+| 優先度 | レビュー頻度 |
+|--------|--------------|
+{% for priority, frequency in lifecycle_design.review_schedule.items() %}
+| {{ priority }} | {{ frequency }} |
+{% endfor %}
+
+---
+
+## 6. 品質管理・承認プロセス
+
+### 6.1 品質基準
+
+{% for criteria in quality_process.quality_criteria %}
+#### 6.1.{{ loop.index }} {{ criteria.criteria }}
+
+**説明**: {{ criteria.description }}
+
+**チェックポイント**:
+{% for check_point in criteria.check_points %}
+- {{ check_point }}
+{% endfor %}
+
+{% endfor %}
+
+### 6.2 承認ワークフロー
+
+{% for step in quality_process.approval_workflow %}
+#### Step {{ step.step }}: {{ step.role }}
+
+**アクション**: {{ step.action }}
+
+**確認項目**:
+{% for criterion in step.criteria %}
+- {{ criterion }}
+{% endfor %}
+
+{% endfor %}
+
+### 6.3 承認ワークフローパターン
+
+{% for workflow in approval_workflows %}
+#### 6.3.{{ loop.index }} {{ workflow.name }}
+
+| 項目 | 内容 |
+|------|------|
+| 適用対象 | {{ workflow.target }} |
+| 承認ステップ | {{ workflow.steps }} |
+| 所要時間 | {{ workflow.duration }} |
+| 特記事項 | {{ workflow.notes }} |
+
+{% endfor %}
+
+### 6.4 フィードバック機能
+
+| 項目 | 内容 |
+|------|------|
+| 評価システム | {{ quality_process.feedback_mechanism.rating_system }} |
+| コメント収集 | {{ quality_process.feedback_mechanism.comment_collection }} |
+| 利用分析 | {{ quality_process.feedback_mechanism.usage_analytics }} |
+| レビュートリガー | {{ quality_process.feedback_mechanism.review_trigger }} |
+
+---
+
+## 7. 検索・活用設計
+
+### 7.1 検索機能設計
+
+{% for feature in search_features %}
+#### 7.1.{{ loop.index }} {{ feature.name }}
+
+| 項目 | 内容 |
+|------|------|
+| 機能説明 | {{ feature.description }} |
+| 実装方法 | {{ feature.implementation }} |
+| 対象フィールド | {{ feature.search_fields | join(', ') }} |
+| 特徴 | {{ feature.features | join(', ') }} |
+
+{% endfor %}
+
+### 7.2 検索最適化
+
+#### 7.2.1 インデックス設計
+- **フルテキストインデックス**: タイトル、本文、タグ
+- **カテゴリインデックス**: カテゴリ、サブカテゴリ
+- **メタデータインデックス**: 作成日、更新日、評価
+
+#### 7.2.2 検索結果最適化
+- **関連度スコアリング**: 検索クエリとの一致度
+- **人気度補正**: 閲覧数・評価による補正
+- **鮮度補正**: 更新日による補正
+
+### 7.3 ユーザビリティ向上
+
+1. **おすすめ機能**: 閲覧履歴に基づく関連記事提案
+2. **最近見た記事**: ユーザーの閲覧履歴表示
+3. **人気記事**: アクセス数上位記事の表示
+4. **新着記事**: 最新公開記事の通知
+5. **お気に入り**: ユーザー個人のブックマーク機能
+
+---
+
+## 8. パフォーマンス・分析設計
+
+### 8.1 パフォーマンス指標
+
+{% for metric in quality_metrics %}
+#### 8.1.{{ loop.index }} {{ metric.name }}
+
+| 項目 | 内容 |
+|------|------|
+| 定義 | {{ metric.definition }} |
+| 計算式 | {{ metric.formula }} |
+| 目標値 | {{ metric.target }} |
+| 測定頻度 | {{ metric.frequency }} |
+
+{% endfor %}
+
+### 8.2 分析レポート
+
+{% for report in analytics_reports %}
+#### 8.2.{{ loop.index }} {{ report.name }}
+
+| 項目 | 内容 |
+|------|------|
+| 目的 | {{ report.purpose }} |
+| 対象者 | {{ report.audience }} |
+| 頻度 | {{ report.frequency }} |
+| 主要指標 | {{ report.metrics | join(', ') }} |
+| 配信方法 | {{ report.delivery_method }} |
+
+{% endfor %}
+
+### 8.3 ダッシュボード設計
+
+#### 8.3.1 管理者ダッシュボード
+- **コンテンツ統計**: 総記事数、カテゴリ別記事数
+- **利用状況**: 月間PV、検索回数、ダウンロード数
+- **品質指標**: 平均評価、レビュー待ち記事数
+- **パフォーマンス**: 応答時間、可用性
+
+#### 8.3.2 ユーザーダッシュボード
+- **人気記事**: アクセス数上位記事
+- **新着記事**: 最新公開記事一覧
+- **マイページ**: お気に入り、閲覧履歴
+- **カテゴリ別記事**: カテゴリごとの記事一覧
+
+---
+
+## 9. セキュリティ・アクセス制御
+
+### 9.1 アクセス制御設計
+
+#### 9.1.1 認証・認可
+
+| レベル | 対象者 | 権限 |
+|--------|--------|------|
+| 閲覧のみ | 全社員 | 公開ナレッジの閲覧・検索 |
+| 寄稿者 | 指定社員 | ナレッジ作成・編集 |
+| レビューア | 各部門リーダー | ナレッジレビュー・承認 |
+| 管理者 | ITチーム | 全機能・システム管理 |
+
+#### 9.1.2 コンテンツ分類
+
+| 分類 | アクセス範囲 | 例 |
+|------|--------------|-----|
+| 公開 | 全社員 | 一般的なFAQ、基本操作手順 |
+| 部門限定 | 特定部門 | 部門固有の業務手順 |
+| 機密 | 管理者のみ | セキュリティ設定、障害対応 |
+
+### 9.2 データ保護
+
+#### 9.2.1 暗号化
+- **保存時暗号化**: AES-256による全データ暗号化
+- **転送時暗号化**: TLS 1.3による通信保護
+- **バックアップ暗号化**: バックアップデータの暗号化
+
+#### 9.2.2 監査ログ
+- **アクセスログ**: 記事閲覧、検索、ダウンロード
+- **変更ログ**: 記事作成、編集、削除、承認
+- **管理ログ**: ユーザー権限変更、設定変更
+
+---
+
+## 10. 他プロセスとの連携
+
+### 10.1 連携プロセス
+
+{% for integration in integration_points %}
+#### 10.1.{{ loop.index }} {{ integration.process }}
+
+| 項目 | 内容 |
+|------|------|
+| 連携内容 | {{ integration.description }} |
+| データ交換 | {{ integration.data_exchange }} |
+| 連携頻度 | {{ integration.frequency }} |
+| 責任者 | {{ integration.owner }} |
+
+{% endfor %}
+
+### 10.2 インシデント管理との連携
+
+#### 10.2.1 自動ナレッジ提案
+- インシデント登録時の関連ナレッジ自動提案
+- 解決済みインシデントからのナレッジ生成提案
+
+#### 10.2.2 ナレッジ活用追跡
+- ナレッジ使用によるインシデント解決の追跡
+- 効果的なナレッジの特定・評価
+
+### 10.3 変更管理との連携
+
+#### 10.3.1 変更に伴うナレッジ更新
+- システム変更時の関連ナレッジ更新通知
+- 新機能リリース時のナレッジ作成要求
+
+### 10.4 トレーニングとの連携
+
+#### 10.4.1 教育コンテンツ連携
+- ナレッジベースを活用した研修コンテンツ
+- スキル別のナレッジ推奨リスト
+
+---
+
+## 付録
+
+### A. ナレッジテンプレート
+
+#### A.1 How-to記事テンプレート
+
+```markdown
+# [タイトル]
+
+## 概要
+この記事では、[目的]について説明します。
+
+## 前提条件
+- [前提条件1]
+- [前提条件2]
+
+## 手順
+1. [ステップ1]
+2. [ステップ2]
+3. [ステップ3]
+
+## 期待結果
+[手順完了後の結果]
+
+## トラブルシューティング
+| 問題 | 原因 | 対処法 |
+|------|------|--------|
+| [問題1] | [原因1] | [対処法1] |
+
+## 関連記事
+- [関連記事1]
+- [関連記事2]
+```
+
+#### A.2 FAQ記事テンプレート
+
+```markdown
+# [FAQ タイトル]
+
+## 質問
+[よくある質問]
+
+## 回答
+[簡潔な回答]
+
+## 詳細説明
+[必要に応じて詳細説明]
+
+## 関連するFAQ
+- [関連FAQ1]
+- [関連FAQ2]
+```
+
+### B. 品質チェックリスト
+
+#### B.1 作成者チェックリスト
+- [ ] タイトルが内容を適切に表している
+- [ ] 目的・対象者が明確
+- [ ] 手順が論理的で分かりやすい
+- [ ] 図表が適切に使用されている
+- [ ] 関連記事が紐付けられている
+
+#### B.2 レビューアチェックリスト
+- [ ] 技術的内容が正確
+- [ ] 手順の実行可能性確認済み
+- [ ] 表記・用語が統一されている
+- [ ] 適切なカテゴリに分類されている
+- [ ] セキュリティ上の問題がない
+
+---
+
+**文書管理**
+- **承認者**: {{ author.name }}
+- **承認日**: {{ created_date.strftime('%Y年%m月%d日') }}
+- **次回レビュー予定**: {{ (created_date.replace(year=created_date.year + 1)).strftime('%Y年%m月%d日') }}
+- **文書保管場所**: ServiceNow Knowledge Base

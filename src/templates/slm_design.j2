@@ -1,0 +1,292 @@
+# {{ project_name }}
+# SLM（Service Level Management）設計書
+
+---
+
+**文書情報**
+- **プロジェクト名**: {{ project_name }}
+- **文書バージョン**: {{ version }}
+- **作成日**: {{ created_date.strftime('%Y年%m月%d日') }}
+- **作成者**: {{ author.name }} ({{ author.email }})
+
+---
+
+## 1. 概要
+
+### 1.1 目的
+{{ slm_overview.purpose }}
+
+### 1.2 適用範囲
+{{ slm_overview.scope }}
+
+### 1.3 目標
+{% for objective in slm_overview.objectives %}
+- {{ objective }}
+{% endfor %}
+
+### 1.4 期待効果
+{% for benefit in slm_overview.benefits %}
+- {{ benefit }}
+{% endfor %}
+
+### 1.5 主要活動
+{% for activity in slm_overview.key_activities %}
+- {{ activity }}
+{% endfor %}
+
+---
+
+## 2. SLM基本方針
+
+### 2.1 サービスレベル管理の基本原則
+
+1. **顧客志向**: 顧客の業務要件に基づいたサービスレベルの定義
+2. **測定可能性**: 客観的で測定可能な指標の設定
+3. **実現可能性**: 技術的・経済的に実現可能な目標設定
+4. **継続改善**: 定期的なレビューと継続的な改善
+5. **透明性**: サービスレベルの状況を関係者に明確に報告
+
+### 2.2 役割と責任
+
+| 役割 | 責任 |
+|------|------|
+| SLMマネージャー | SLM全体の統括、SLA交渉、改善計画策定 |
+| サービスオーナー | サービス固有のSLA定義、品質管理 |
+| 技術チーム | サービスレベルの測定、技術的改善実施 |
+| 顧客代表 | 業務要件の明確化、SLA合意 |
+
+---
+
+## 3. サービスレベル定義
+
+### 3.1 サービスカテゴリ
+{% for category in service_categories %}
+- {{ category }}
+{% endfor %}
+
+### 3.2 主要サービスレベル
+
+{% for service in service_levels %}
+#### 3.2.{{ loop.index }} {{ service.service_name }}
+
+| 項目 | 目標値 |
+|------|--------|
+| 可用性 | {{ service.availability }} |
+| パフォーマンス | {{ service.performance }} |
+| キャパシティ | {{ service.capacity }} |
+| 継続性 | {{ service.continuity }} |
+
+{% endfor %}
+
+---
+
+## 4. SLA（Service Level Agreement）設計
+
+### 4.1 SLA基本構造
+
+```
+SLA = サービス内容 + 品質指標 + 目標値 + 測定方法 + 報告方法
+```
+
+### 4.2 SLA定義
+
+{% for sla in sla_definitions %}
+#### 4.2.{{ loop.index }} {{ sla.service }}
+
+| メトリクス | 目標値 |
+|------------|--------|
+{% for metric in sla.metrics %}
+| {{ metric.name }} | {{ metric.target }} |
+{% endfor %}
+
+{% endfor %}
+
+### 4.3 SLA違反時の対応
+
+1. **通知**: 自動アラート送信
+2. **調査**: 原因分析と対策検討
+3. **報告**: 顧客への状況報告
+4. **改善**: 再発防止策の実施
+
+---
+
+## 5. OLA（Operational Level Agreement）設計
+
+### 5.1 OLA概要
+OLAは内部チーム間でのサービス提供に関する合意事項を定義します。
+
+### 5.2 OLA定義
+
+{% for ola in ola_definitions %}
+#### 5.2.{{ loop.index }} {{ ola.service }}
+
+| 項目 | 内容 |
+|------|------|
+| 提供チーム | {{ ola.provider }} |
+| 受領チーム | {{ ola.receiver }} |
+| サービス内容 | {{ ola.description }} |
+| 目標値 | {{ ola.targets }} |
+
+{% endfor %}
+
+---
+
+## 6. UC（Underpinning Contract）設計
+
+### 6.1 UC概要
+UCは外部ベンダーとの契約におけるサービスレベルを定義します。
+
+### 6.2 UC定義
+
+{% for uc in uc_definitions %}
+#### 6.2.{{ loop.index }} {{ uc.service }}
+
+| 項目 | 内容 |
+|------|------|
+| ベンダー | {{ uc.vendor }} |
+| サービス内容 | {{ uc.description }} |
+| 契約期間 | {{ uc.contract_period }} |
+| SLA目標 | {{ uc.sla_targets }} |
+| ペナルティ条項 | {{ uc.penalties }} |
+
+{% endfor %}
+
+---
+
+## 7. 測定・監視設計
+
+### 7.1 監視ツール
+
+{% for tool in monitoring_design.monitoring_tools %}
+#### 7.1.{{ loop.index }} {{ tool.name }}
+- **目的**: {{ tool.purpose }}
+{% endfor %}
+
+### 7.2 データソース
+
+{% for source in monitoring_design.data_sources %}
+- {{ source }}
+{% endfor %}
+
+### 7.3 測定頻度
+
+| 頻度 | 測定項目 |
+|------|----------|
+{% for frequency, metrics in monitoring_design.measurement_frequency.items() %}
+| {{ frequency }} | {{ metrics | join(', ') }} |
+{% endfor %}
+
+### 7.4 アラート条件
+
+{% for alert in monitoring_design.alert_conditions %}
+#### 7.4.{{ loop.index }} {{ alert.metric }}
+- **条件**: {{ alert.threshold }}
+{% endfor %}
+
+---
+
+## 8. レポート設計
+
+### 8.1 レポート種別
+
+{% for report in reporting_design %}
+#### 8.1.{{ loop.index }} {{ report.name }}
+
+| 項目 | 内容 |
+|------|------|
+| 頻度 | {{ report.frequency }} |
+| 対象者 | {{ report.audience }} |
+| 内容 | {{ report.content }} |
+| 配信方法 | {{ report.delivery }} |
+
+{% endfor %}
+
+### 8.2 レポート頻度
+{% for frequency, description in reporting_frequency.items() %}
+- **{{ frequency }}**: {{ description }}
+{% endfor %}
+
+---
+
+## 9. 改善プロセス
+
+### 9.1 改善サイクル
+
+```
+測定 → 分析 → 計画 → 実行 → 評価 → 測定
+```
+
+### 9.2 レビューサイクル
+
+{% for cycle in review_cycles %}
+#### 9.2.{{ loop.index }} {{ cycle.name }}
+
+| 項目 | 内容 |
+|------|------|
+| 頻度 | {{ cycle.frequency }} |
+| 参加者 | {{ cycle.participants }} |
+| 議題 | {{ cycle.agenda }} |
+| 成果物 | {{ cycle.deliverables }} |
+
+{% endfor %}
+
+### 9.3 改善プロセス
+
+1. **パフォーマンス分析**: SLA達成状況の詳細分析
+2. **ギャップ識別**: 目標値と実績値の差異特定
+3. **原因分析**: 根本原因の特定
+4. **改善計画**: 具体的な改善アクションの策定
+5. **実行・監視**: 改善施策の実行と効果測定
+
+---
+
+## 10. 他プロセスとの連携
+
+### 10.1 連携ポイント
+
+{% for integration in integration_points %}
+#### 10.1.{{ loop.index }} {{ integration.process }}
+
+| 項目 | 内容 |
+|------|------|
+| 連携内容 | {{ integration.description }} |
+| データ交換 | {{ integration.data_exchange }} |
+| 責任者 | {{ integration.owner }} |
+
+{% endfor %}
+
+---
+
+## 付録
+
+### A. 測定メトリクス一覧
+
+{% for metric in measurement_metrics %}
+#### A.{{ loop.index }} {{ metric.name }}
+
+| 項目 | 内容 |
+|------|------|
+| 定義 | {{ metric.definition }} |
+| 計算式 | {{ metric.formula }} |
+| データソース | {{ metric.data_source }} |
+| 測定頻度 | {{ metric.frequency }} |
+
+{% endfor %}
+
+### B. 用語集
+
+| 用語 | 定義 |
+|------|------|
+| SLA | Service Level Agreement - 顧客とサービスプロバイダー間のサービスレベル合意 |
+| OLA | Operational Level Agreement - 内部チーム間のサービスレベル合意 |
+| UC | Underpinning Contract - 外部ベンダーとの基盤契約 |
+| KPI | Key Performance Indicator - 主要業績評価指標 |
+| CSI | Continual Service Improvement - 継続的サービス改善 |
+
+---
+
+**文書管理**
+- **承認者**: {{ author.name }}
+- **承認日**: {{ created_date.strftime('%Y年%m月%d日') }}
+- **次回レビュー予定**: {{ (created_date.replace(year=created_date.year + 1)).strftime('%Y年%m月%d日') }}
+- **文書保管場所**: ServiceNow Knowledge Base

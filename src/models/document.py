@@ -17,6 +17,7 @@ class DocumentType(str, Enum):
     PROBLEM_MANAGEMENT = "問題管理設計書"
     CHANGE_MANAGEMENT = "変更管理設計書"
     SERVICE_CATALOG = "サービスカタログ設計書"
+    KNOWLEDGE_MANAGEMENT = "ナレッジ管理設計書"
     
     # CMDB・サービス階層設計書類
     CMDB_DESIGN = "CMDB設計書"
@@ -60,6 +61,7 @@ class DocumentType(str, Enum):
     MAINTENANCE_PROCEDURE = "保守運用手順書"
     KPI_PA_DESIGN = "KPI・PA設計書"
     PERFORMANCE_CAPACITY = "性能・キャパシティ設計書"
+    SLM_DESIGN = "SLM設計書"
     
     # テスト・品質管理書類
     TEST_DESIGN = "テスト設計書"

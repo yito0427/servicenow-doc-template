@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block title %}設定 - ServiceNow Document Generator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-cog me-2"></i>
+                システム設定
+            </h2>
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary" onclick="exportConfig()">
+                    <i class="fas fa-download me-1"></i>
+                    設定エクスポート
+                </button>
+                <button type="button" class="btn btn-outline-success" onclick="reloadConfig()">
+                    <i class="fas fa-sync me-1"></i>
+                    設定再読み込み
+                </button>
+            </div>
+        </div>
+
+        <!-- Application Settings -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    アプリケーション設定
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="appSettingsForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="app_name" class="form-label">アプリケーション名</label>
+                            <input type="text" class="form-control" id="app_name" 
+                                   value="{{ settings.application.name }}" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="app_version" class="form-label">バージョン</label>
+                            <input type="text" class="form-control" id="app_version" 
+                                   value="{{ settings.application.version }}" readonly>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="app_description" class="form-label">説明</label>
+                        <textarea class="form-control" id="app_description" rows="3" readonly>{{ settings.application.description }}</textarea>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Default Values Settings -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-cog me-2"></i>
+                    デフォルト値設定
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="defaultsForm">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="default_author_name" class="form-label">デフォルト作成者名</label>
+                            <input type="text" class="form-control" id="default_author_name" 
+                                   value="{{ settings.defaults.author.name }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="default_author_email" class="form-label">デフォルトメールアドレス</label>
+                            <input type="email" class="form-control" id="default_author_email" 
+                                   value="{{ settings.defaults.author.email }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="default_author_role" class="form-label">デフォルト役職</label>
+                            <input type="text" class="form-control" id="default_author_role" 
+                                   value="{{ settings.defaults.author.role }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="default_client_name" class="form-label">デフォルトクライアント名</label>
+                            <input type="text" class="form-control" id="default_client_name" 
+                                   value="{{ settings.defaults.client.name }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="default_client_dept" class="form-label">デフォルト部署名</label>
+                            <input type="text" class="form-control" id="default_client_dept" 
+                                   value="{{ settings.defaults.client.department }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="default_doc_version" class="form-label">デフォルトバージョン</label>
+                            <input type="text" class="form-control" id="default_doc_version" 
+                                   value="{{ settings.defaults.document.version }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="default_doc_language" class="form-label">デフォルト言語</label>
+                            <select class="form-select" id="default_doc_language">
+                                <option value="ja" {% if settings.defaults.document.language == 'ja' %}selected{% endif %}>日本語</option>
+                                <option value="en" {% if settings.defaults.document.language == 'en' %}selected{% endif %}>English</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="default_doc_format" class="form-label">デフォルトフォーマット</label>
+                            <select class="form-select" id="default_doc_format">
+                                <option value="markdown" {% if settings.defaults.document.format == 'markdown' %}selected{% endif %}>Markdown</option>
+                                <option value="html" {% if settings.defaults.document.format == 'html' %}selected{% endif %}>HTML</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="saveDefaults()">
+                        <i class="fas fa-save me-1"></i>
+                        デフォルト値を保存
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Template Settings -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-alt me-2"></i>
+                    テンプレート設定
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>テンプレート名</th>
+                                <th>説明</th>
+                                <th>セクション数</th>
+                                <th>必須フィールド数</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for template_id, template in settings.templates.items() %}
+                            <tr>
+                                <td>
+                                    <strong>{{ template.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ template_id }}</small>
+                                </td>
+                                <td>{{ template.description }}</td>
+                                <td>{{ template.sections|length }}</td>
+                                <td>{{ template.required_fields|length }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            onclick="editTemplate('{{ template_id }}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-success" 
+                                            onclick="previewTemplate('{{ template_id }}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Settings -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-export me-2"></i>
+                    エクスポート設定
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="exportSettingsForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">利用可能フォーマット</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for format in settings.export.formats %}
+                                <span class="badge bg-primary">{{ format }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="pdf_page_size" class="form-label">PDFページサイズ</label>
+                            <select class="form-select" id="pdf_page_size">
+                                <option value="A4" {% if settings.export.pdf.page_size == 'A4' %}selected{% endif %}>A4</option>
+                                <option value="A3" {% if settings.export.pdf.page_size == 'A3' %}selected{% endif %}>A3</option>
+                                <option value="Letter" {% if settings.export.pdf.page_size == 'Letter' %}selected{% endif %}>Letter</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="pdf_margin" class="form-label">PDFマージン</label>
+                            <input type="text" class="form-control" id="pdf_margin" 
+                                   value="{{ settings.export.pdf.margin }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="word_font_size" class="form-label">Wordフォントサイズ</label>
+                            <input type="text" class="form-control" id="word_font_size" 
+                                   value="{{ settings.export.word.font_size }}">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="saveExportSettings()">
+                        <i class="fas fa-save me-1"></i>
+                        エクスポート設定を保存
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Web Interface Settings -->
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-globe me-2"></i>
+                    Webインターフェース設定
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="webSettingsForm">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="web_title" class="form-label">Webタイトル</label>
+                            <input type="text" class="form-control" id="web_title" 
+                                   value="{{ settings.web.title }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="web_theme" class="form-label">テーマ</label>
+                            <select class="form-select" id="web_theme">
+                                <option value="bootstrap" {% if settings.web.theme == 'bootstrap' %}selected{% endif %}>Bootstrap</option>
+                                <option value="material" {% if settings.web.theme == 'material' %}selected{% endif %}>Material</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="items_per_page" class="form-label">1ページあたりの項目数</label>
+                            <input type="number" class="form-control" id="items_per_page" 
+                                   value="{{ settings.web.items_per_page }}">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="saveWebSettings()">
+                        <i class="fas fa-save me-1"></i>
+                        Web設定を保存
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle me-2"></i>
+                    保存完了
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="successMessage">設定が正常に保存されました。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function saveDefaults() {
+    const data = {
+        author: {
+            name: document.getElementById('default_author_name').value,
+            email: document.getElementById('default_author_email').value,
+            role: document.getElementById('default_author_role').value
+        },
+        client: {
+            name: document.getElementById('default_client_name').value,
+            department: document.getElementById('default_client_dept').value
+        },
+        document: {
+            version: document.getElementById('default_doc_version').value,
+            language: document.getElementById('default_doc_language').value,
+            format: document.getElementById('default_doc_format').value
+        }
+    };
+
+    try {
+        const response = await fetch('/api/settings/defaults', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            showSuccess('デフォルト値設定が保存されました。');
+        } else {
+            alert('保存に失敗しました。');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('エラーが発生しました。');
+    }
+}
+
+async function saveExportSettings() {
+    const data = {
+        pdf: {
+            page_size: document.getElementById('pdf_page_size').value,
+            margin: document.getElementById('pdf_margin').value
+        },
+        word: {
+            font_size: document.getElementById('word_font_size').value
+        }
+    };
+
+    try {
+        const response = await fetch('/api/settings/export', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            showSuccess('エクスポート設定が保存されました。');
+        } else {
+            alert('保存に失敗しました。');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('エラーが発生しました。');
+    }
+}
+
+async function saveWebSettings() {
+    const data = {
+        title: document.getElementById('web_title').value,
+        theme: document.getElementById('web_theme').value,
+        items_per_page: parseInt(document.getElementById('items_per_page').value)
+    };
+
+    try {
+        const response = await fetch('/api/settings/web', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            showSuccess('Web設定が保存されました。');
+        } else {
+            alert('保存に失敗しました。');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('エラーが発生しました。');
+    }
+}
+
+async function exportConfig() {
+    try {
+        const response = await fetch('/api/settings/export-config');
+        const blob = await response.blob();
+        
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'templates_config.yaml';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('設定のエクスポートに失敗しました。');
+    }
+}
+
+async function reloadConfig() {
+    try {
+        const response = await fetch('/api/settings/reload', { method: 'POST' });
+        
+        if (response.ok) {
+            showSuccess('設定が再読み込みされました。');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            alert('設定の再読み込みに失敗しました。');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('エラーが発生しました。');
+    }
+}
+
+function editTemplate(templateId) {
+    // Template editing functionality
+    window.location.href = `/template/${templateId}`;
+}
+
+function previewTemplate(templateId) {
+    // Template preview functionality
+    window.location.href = `/preview/${templateId}`;
+}
+
+function showSuccess(message) {
+    document.getElementById('successMessage').textContent = message;
+    const modal = new bootstrap.Modal(document.getElementById('successModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

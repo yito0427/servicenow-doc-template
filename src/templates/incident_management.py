@@ -35,6 +35,9 @@ class IncidentManagementTemplate(BaseDocumentTemplate):
         ]
     
     def prepare_context(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        # 設定ファイルからデフォルト値を取得
+        default_values = self.get_default_values()
+        
         context = {
             "project_name": data.get("project_name"),
             "author": data.get("author"),
@@ -52,7 +55,15 @@ class IncidentManagementTemplate(BaseDocumentTemplate):
             "integration_points": data.get("integration_points", [])
         }
         
-        # デフォルト値の設定
+        # 設定ファイルからのデフォルト値を使用
+        context.update({
+            "incident_types": data.get("incident_types", default_values.get("incident_types", ["システム障害", "パフォーマンス問題"])),
+            "priority_levels": data.get("priority_levels", default_values.get("priority_levels", ["重要", "高", "中", "低"])),
+            "escalation_rules": data.get("escalation_rules", default_values.get("escalation_rules", "30分以内に上位者へエスカレーション")),
+            "sla_targets": data.get("sla_targets", default_values.get("sla_targets", {}))
+        })
+        
+        # デフォルト値の設定（既存のメソッドも継続使用）
         if not context["process_overview"]:
             context["process_overview"] = self._get_default_process_overview()
         

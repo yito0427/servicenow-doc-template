@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}ServiceNow Document Generator - ホーム{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="text-center mb-5">
+            <h1 class="display-4 mb-3">
+                <i class="fas fa-file-alt text-primary"></i>
+                ServiceNow Document Generator
+            </h1>
+            <p class="lead text-muted">
+                ServiceNowデリバリプロジェクトに必要な設計書を簡単に生成
+            </p>
+        </div>
+
+        <!-- Quick Start Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-rocket me-2"></i>
+                    クイックスタート
+                </h5>
+            </div>
+            <div class="card-body">
+                <form action="/generate-form" method="post" id="documentForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="document_type" class="form-label">ドキュメントタイプ</label>
+                            <select class="form-select" id="document_type" name="document_type" required>
+                                <option value="">選択してください</option>
+                                {% for doc_type in document_types %}
+                                <option value="{{ doc_type.value }}">{{ doc_type.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="project_name" class="form-label">プロジェクト名</label>
+                            <input type="text" class="form-control" id="project_name" name="project_name" 
+                                   placeholder="例: ServiceNow ITSM導入プロジェクト" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="author_name" class="form-label">作成者名</label>
+                            <input type="text" class="form-control" id="author_name" name="author_name" 
+                                   placeholder="例: 山田太郎" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="author_email" class="form-label">メールアドレス</label>
+                            <input type="email" class="form-control" id="author_email" name="author_email" 
+                                   placeholder="例: yamada@example.com" required>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-file-export me-2"></i>
+                            ドキュメント生成
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Template Preview Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-eye me-2"></i>
+                    テンプレートプレビュー
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <select class="form-select" id="preview_template">
+                            <option value="">プレビューするテンプレートを選択</option>
+                            {% for doc_type in document_types %}
+                            <option value="{{ doc_type.value }}">{{ doc_type.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <button type="button" class="btn btn-outline-primary" onclick="previewTemplate()">
+                            <i class="fas fa-search me-1"></i>
+                            プレビュー
+                        </button>
+                    </div>
+                </div>
+                <div id="preview_content" class="mt-3" style="display: none;">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>プレビュー</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="downloadPreview()">
+                                <i class="fas fa-download me-1"></i>
+                                ダウンロード
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <pre id="preview_text" class="bg-light p-3" style="max-height: 400px; overflow-y: auto;"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Templates -->
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    利用可能なテンプレート ({{ templates|length }}個)
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for template in templates %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100 border-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-file-text text-primary me-2"></i>
+                                    {{ template.type }}
+                                </h6>
+                                <p class="card-text small text-muted">
+                                    セクション数: {{ template.sections|length }}
+                                </p>
+                                <a href="/template/{{ template.type }}" class="btn btn-sm btn-outline-primary">
+                                    詳細表示
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>ドキュメントを生成中...</h5>
+                <p class="text-muted mb-0">しばらくお待ちください</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPreviewData = null;
+
+// Form submission with loading
+document.getElementById('documentForm').addEventListener('submit', function(e) {
+    const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    modal.show();
+});
+
+// Template preview function
+async function previewTemplate() {
+    const templateType = document.getElementById('preview_template').value;
+    if (!templateType) {
+        alert('テンプレートを選択してください');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/templates/${encodeURIComponent(templateType)}/preview`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            currentPreviewData = data;
+            document.getElementById('preview_text').textContent = data.content;
+            document.getElementById('preview_content').style.display = 'block';
+        } else {
+            alert('プレビューの取得に失敗しました: ' + data.detail);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('プレビューの取得中にエラーが発生しました');
+    }
+}
+
+// Download preview
+function downloadPreview() {
+    if (!currentPreviewData) {
+        alert('プレビューデータがありません');
+        return;
+    }
+    
+    const blob = new Blob([currentPreviewData.content], { type: 'text/markdown' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = currentPreviewData.filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+// Show all templates
+function showAllTemplates() {
+    window.location.href = '#available-templates';
+    document.querySelector('.card:last-child').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Pre-select template if provided via URL parameter
+document.addEventListener('DOMContentLoaded', function() {
+    const selectedTemplate = "{{ selected_template }}";
+    if (selectedTemplate && selectedTemplate !== "None") {
+        document.getElementById('document_type').value = selectedTemplate;
+        document.getElementById('preview_template').value = selectedTemplate;
+    }
+});
+</script>
+{% endblock %}
